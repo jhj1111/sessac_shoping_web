@@ -178,3 +178,4 @@ cython_debug/
 .vs
 migrations
 .idea
+.venv*
