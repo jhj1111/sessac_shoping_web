@@ -158,6 +158,11 @@
                     <h5 class="mb-0">총 금액: {{ order_data.order.total_amount }}</h5>
                     <small class="text-muted">주문 시간: {{ order_data.order.order_time|date:"Y년 m월 d일 H시 i분" }}</small>
                 </div>
+                {% if order_data.order.get_status_display == '주문 대기' %}
+                <div class="card-footer text-end">
+                    <button type="button" class="btn btn-danger btn-sm cancel-order-btn" data-order-id="{{ order_data.order.id }}">주문 취소</button>
+                </div>
+                {% endif %}
                 <div class="card-body p-0"> {# Remove default padding to control list-group padding #}
                     {% for restaurant, items in order_data.grouped_items.items %}
                     <img src="{% if restaurant.image %}{{ restaurant.image.url }}{% else %}/static/no_image.jpg{% endif %}" 
