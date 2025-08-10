@@ -3,10 +3,10 @@
 graph TB
     subgraph "🛒 3. orders App"
         subgraph "Models"
-            C1["Order Model<br> (models.Model)"<br/>- user: ForeignKey<br/>- restaurant: ForeignKey<br/>- address: ForeignKey<br/>- status: CharField<br/>- total_amount: PositiveIntegerField<br/>- delivery_fee: PositiveIntegerField<br/>- discount_amount: PositiveIntegerField<br/>- order_time: DateTimeField<br/>- delivery_time: DateTimeField<br/>- special_requests: TextField<br/>- payment_method: CharField<br/><br/>Methods:<br/>+ calculate_total<br/>+ update_status<br/>+ can_cancel<br/>+ get_status_display]
-            C2["OrderItem Model<br> (models.Model)"<br/>- order: ForeignKey<br/>- menu: ForeignKey<br/>- quantity: PositiveIntegerField<br/>- unit_price: PositiveIntegerField<br/>- total_price: PositiveIntegerField<br/>- selected_options: JSONField<br/><br/>Methods:<br/>+ calculate_item_total<br/>+ get_option_display]
-            C3["Cart Model<br> (models.Model)"<br/>- user: ForeignKey<br/>- restaurant: ForeignKey<br/>- created_at: DateTimeField<br/>- updated_at: DateTimeField<br/><br/>Methods:<br/>+ add_item<br/>+ remove_item<br/>+ get_total_price<br/>+ clear<br/>+ is_empty]
-            C4["CartItem Model<br> (models.Model)"<br/>- cart: ForeignKey<br/>- menu: ForeignKey<br/>- quantity: PositiveIntegerField<br/>- selected_options: JSONField<br/><br/>Methods:<br/>+ update_quantity<br/>+ get_item_total]
+            C1["Order Model<br> (models.Model)"<br/>- user: ForeignKey<br/>- status: CharField<br/>- total_amount: PositiveIntegerField<br/>- delivery_fee: PositiveIntegerField<br/>- discount_amount: PositiveIntegerField<br/>- order_time: DateTimeField<br/>- special_requests: TextField<br/>- payment_method: CharField<br/><br/>Methods:<br/>+ restaurants _property<br/>+ group_items_by_restaurant]
+            C2["OrderItem Model<br> (models.Model)"<br/>- order: ForeignKey<br/>- menu: ForeignKey _null<br/>- quantity: PositiveIntegerField<br/>- unit_price: PositiveIntegerField<br/>- total_price: PositiveIntegerField<br/>- selected_options: JSONField<br/><br/>Methods:<br/>+ restaurant _property]
+            C3["Cart Model<br> (models.Model)"<br/>- user: OneToOneField<br/>- created_at: DateTimeField<br/>- updated_at: DateTimeField<br/><br/>Methods:<br/>+ add_item<br/>+ remove_item<br/>+ get_total_price<br/>+ clear<br/>+ is_empty]
+            C4["CartItem Model<br> (models.Model)"<br/>- cart: ForeignKey<br/>- menu: ForeignKey _null<br/>- quantity: PositiveIntegerField<br/>- selected_options: JSONField<br/><br/>Methods:<br/>+ get_item_total]
         end
         
         subgraph "Views"
@@ -17,7 +17,7 @@ graph TB
         end
         
         subgraph "Services"
-            C9[OrderService<br/>+ create_order<br/>+ calculate_delivery_fee<br/>+ validate_order<br/>+ process_payment]
+            C9[OrderService<br/>+ create_order_from_cart<br/>+ calculate_delivery_fee<br/>+ validate_order<br/>+ process_payment]
             C10[CartService<br/>+ merge_carts<br/>+ validate_items<br/>+ check_restaurant_change]
         end
     end
@@ -28,8 +28,8 @@ graph TB
 ### Models
 Django의 `models.Model`을 상속하여 데이터베이스 스키마를 정의합니다. 각 모델은 시스템의 핵심 데이터를 구조화하고, 데이터 간의 관계(1:N, N:M)를 설정하며, 데이터 무결성을 보장하는 역할을 합니다.
 
-- **Cart & CartItem**: 사용자가 주문할 메뉴를 임시로 담아두는 장바구니와 그 안의 항목입니다. `User`와 `Cart`는 1:1 또는 1:N 관계를 가질 수 있으며, `Cart`와 `CartItem`은 1:N 관계입니다. `CartItem`은 `Menu` 모델(restaurants 앱)과 연결되어 상품 정보를 참조합니다.
-- **Order & OrderItem**: 사용자의 확정된 주문과 그 상세 내역입니다. `Cart`의 내용을 기반으로 생성되며, `Order`는 주문의 전반적인 정보(배송지, 결제 금액, 주문 상태 등)를, `OrderItem`은 주문된 각 상품의 정보(수량, 가격, 선택 옵션 등)를 저장합니다. `Order`와 `OrderItem`은 1:N 관계입니다.
+- **Cart & CartItem**: 사용자가 주문할 메뉴를 임시로 담아두는 장바구니와 그 안의 항목입니다. **하나의 장바구니에 여러 가게의 메뉴를 담을 수 있도록 설계되었습니다.** `User`와 `Cart`는 1:1 관계이며, `Cart`와 `CartItem`은 1:N 관계입니다.
+- **Order & OrderItem**: 사용자의 확정된 주문과 그 상세 내역입니다. `Cart`의 내용을 기반으로 생성되며, **`Order`는 한 번의 결제에 포함된 전체 주문(여러 가게 포함 가능) 정보를, `OrderItem`은 주문된 각 상품의 상세 정보(가게, 수량, 가격 등)를 저장합니다.** `Order`와 `OrderItem`은 1:N 관계입니다.
 
 ### Views
 사용자의 HTTP 요청(Request)을 받아 비즈니스 로직을 실행하고, 그 결과를 HTTP 응답(Response)으로 반환하는 역할을 합니다. Django의 제네릭 Class-Based Views (CBV)를 상속하여 코드의 재사용성을 높이고 개발 과정을 간소화합니다.
@@ -50,18 +50,14 @@ View가 너무 많은 역할을 떠안아 비대해지는 것을 방지하기 �
 ## 📖 주요 함수 및 메서드 상세
 
 ### Model Methods
-- **Order.calculate_total**: 할인 금액, 배달비를 모두 고려하여 주문의 최종 결제 금액을 계산합니다.
-- **Order.update_status**: 주문의 현재 상태를 다음 단계로 변경합니다. (예: 결제완료 -> 상품준비중)
-- **Order.can_cancel**: 현재 주문 상태에서 취소가 가능한지 여부를 boolean 값으로 반환합니다.
-- **Order.get_status_display**: CharField의 choices 옵션에 설정된 상태값의 표시 이름(예: 'processing' -> '준비중')을 반환합니다.
-- **OrderItem.calculate_item_total**: 해당 상품의 단가와 수량을 곱해 합계 금액을 계산합니다.
-- **OrderItem.get_option_display**: JSONField에 저장된 선택 옵션들을 사용자가 보기 좋은 형태의 문자열로 변환하여 반환합니다.
+- **Order.restaurants**: 이 주문에 포함된 모든 가게(`Restaurant`) 객체의 목록을 중복 없이 반환하는 속성입니다.
+- **Order.group_items_by_restaurant**: 주문에 포함된 `OrderItem`들을 가게별로 그룹화하여 딕셔너리 형태로 반환합니다. 각 가게에 주문 내역을 전달할 때 사용됩니다.
+- **OrderItem.restaurant**: 해당 주문 항목이 어느 가게의 메뉴인지 쉽게 접근할 수 있도록 `Restaurant` 객체를 반환하는 속성입니다.
 - **Cart.add_item**: 장바구니에 새로운 상품을 추가하거나, 이미 있는 상품이라면 수량을 증가시킵니다.
 - **Cart.remove_item**: 장바구니에서 특정 상품을 제거합니다.
 - **Cart.get_total_price**: 장바구니에 담긴 모든 상품들의 총액을 계산합니다.
 - **Cart.clear**: 장바구니의 모든 상품을 삭제합니다.
 - **Cart.is_empty**: 장바구니가 비어있는지 여부를 boolean 값으로 반환합니다.
-- **CartItem.update_quantity**: 특정 상품의 수량을 변경합니다.
 - **CartItem.get_item_total**: 해당 상품의 총액(단가 * 수량)을 반환합니다.
 
 ### View Methods
