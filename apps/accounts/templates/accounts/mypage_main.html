@@ -63,6 +63,21 @@
         color: #495057;
         margin-top: 5px;
     }
+    .mypage-choose-date-button .btn {
+        border-radius: 50px; /* More pronounced oval shape */
+        padding: 5px 10px; /* Adjusted padding */
+        margin: 0 10px; /* Adjusted margin */
+        transition: all 0.3s ease;
+    }
+    .mypage-choose-date-button .btn.active {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+    }
+    .mypage-choose-date-button .btn:hover:not(.active) {
+        background-color: #85aed6; /* Adjusted hover color */
+        border-color: #b89868; /* Adjusted hover border color */
+    }
 </style>
 
 <div class="mypage-header mb-4">
@@ -112,7 +127,14 @@
 <div class="order-status-section">
     <div class="mb-3">
         <h4>My 주문정보</h4>
-        <p class="text-muted">최근 15일기준</p>
+        <div class="btn-group btn-group-sm mb-3 mypage-choose-date-button" role="group" aria-label="Order history filter">
+            <button type="button" class="btn btn-outline-primary rounded-pill {% if selected_filter == 'all' %}active{% endif %}" data-filter="all">전체</button>
+            <button type="button" class="btn btn-outline-primary rounded-pill {% if selected_filter == 'recent_15_days' %}active{% endif %}" data-filter="recent_15_days">최근 15일</button>
+            <button type="button" class="btn btn-outline-primary rounded-pill {% if selected_filter == '1_month' %}active{% endif %}" data-filter="1_month">1개월</button>
+            <button type="button" class="btn btn-outline-primary rounded-pill {% if selected_filter == '3_months' %}active{% endif %}" data-filter="3_months">3개월</button>
+            <button type="button" class="btn btn-outline-primary rounded-pill {% if selected_filter == '6_months' %}active{% endif %}" data-filter="6_months">6개월</button>
+            <button type="button" class="btn btn-outline-primary rounded-pill {% if selected_filter == 'test_2hours' %}active{% endif %}" data-filter="test_2hours">테스트용(2시간)</button>
+        </div>
     </div>
     
     <div class="row text-center">
@@ -131,13 +153,17 @@
         <div class="col-12 mb-4"> {# Each order takes full width, with some bottom margin #}
             <div class="card">
                 <div class="card-header">
-                    <img src="{{ order_data.restaurant.image.url|default:'/static/no_image.jpg' }}" alt="...", class="me-2" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
                     <h6 class="card-title mb-0">{{ order_data.restaurant.name }}</h6>
                     <h5 class="mb-0">주문 번호: {{ order_data.order.id }} <span class="badge bg-info">{{ order_data.order.get_status_display }}</span></h5>
+                    <h5 class="mb-0">총 금액: {{ order_data.order.total_amount }}</h5>
                     <small class="text-muted">주문 시간: {{ order_data.order.order_time|date:"Y년 m월 d일 H시 i분" }}</small>
                 </div>
                 <div class="card-body p-0"> {# Remove default padding to control list-group padding #}
                     {% for restaurant, items in order_data.grouped_items.items %}
+                    <img src="{% if restaurant.image %}{{ restaurant.image.url }}{% else %}/static/no_image.jpg{% endif %}" 
+                    alt="..." 
+                    class="me-2" 
+                    style="width: 70px; height: 70px; object-fit: cover; border-radius: 5px;">
                         <div class="card-body border-bottom"> {# Use card-body for each restaurant group, with border #}
                             <ul class="list-group list-group-flush">
                                 {% for item in items %}
@@ -160,4 +186,7 @@
     {% endfor %}
     </div> {# Close the row for orders_with_grouped_items #}
 </div>
+
+{% include 'js/mypage-date-button-state.html' %}
+
 {% endblock %}
