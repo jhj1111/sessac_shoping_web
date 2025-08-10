@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.payments",
     "apps.orders",
+    "apps.restaurants",
 ]
 
 MIDDLEWARE = [
@@ -150,5 +151,5 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'public/media')
 MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'public/media')
