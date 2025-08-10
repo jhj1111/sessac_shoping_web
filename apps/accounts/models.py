@@ -79,7 +79,10 @@ class User(AbstractUser):
         from apps.orders.models import Order # 메서드 안에서 import
 
         # 모든 주문 상태의 초기값을 0으로 설정
-        status_counts = {status_value: 0 for status_value, status_name in Order.OrderStatus.choices}
+        # status_counts = {status_name: 0 for status_value, status_name in Order.OrderStatus.choices}
+        status_counts = {status_name: 0 for status_value, status_name in Order.ORER_STATUS}
+        # get_order_status_name = {status_value: status_name for status_value, status_name in Order.OrderStatus.choices}
+        get_order_status_name = {status_value: status_name for status_value, status_name in Order.ORER_STATUS}
 
         # 사용자의 주문 상태별 개수를 집계
         user_orders_counts = Order.objects.filter(user=self) \
@@ -88,7 +91,8 @@ class User(AbstractUser):
 
         # 결과를 딕셔너리에 업데이트
         for item in user_orders_counts:
-            status_counts[item['status']] = item['count']
+            # status_counts[item['status']] = item['count']
+            status_counts[get_order_status_name[item['status']]] = item['count']
 
         return status_counts
 

@@ -76,18 +76,27 @@ class Order(models.Model):
     사용자의 최종 주문 정보를 저장하는 핵심 모델
     하나의 주문에 여러 가게의 메뉴(OrderItem)가 포함될 수 있습니다.
     """
-    class OrderStatus(models.TextChoices):
-        PENDING = '주문 대기'
-        COOKING = '조리 중'
-        DELIVERING = '배송 중'
-        DELIVERED = '배송 완료'
-        CANCELLED = '주문 취소'
+    # class OrderStatus(models.TextChoices):
+    #     PENDING = '주문 대기'
+    #     COOKING = '조리 중'
+    #     DELIVERING = '배송 중'
+    #     DELIVERED = '배송 완료'
+    #     CANCELLED = '주문 취소'
+
+    ORER_STATUS = [
+        ('PENDING', '주문 대기'),
+        ('COOKING', '조리 중'),
+        ('DELIVERING', '배송 중'),
+        ('DELIVERED', '배송 완료'),
+        ('CANCELLED', '주문 취소'),
+    ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     # [변경] Order가 특정 가게에 종속되지 않도록 restaurant 필드를 완전히 제거합니다.
     # address = models.ForeignKey('accounts.Address', on_delete=models.SET_NULL, null=True)
     
-    status = models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDING)
+    # status = models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDING)
+    status = models.CharField(max_length=20, choices=ORER_STATUS, default='주문 대기')
     
     # [변경] 이 필드들은 모든 가게의 주문 항목을 합산한 총계가 됩니다.
     total_amount = models.PositiveIntegerField(default=0, help_text="모든 가게의 주문 총액")
@@ -134,7 +143,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField()
     unit_price = models.PositiveIntegerField() # 주문 시점의 가격
     total_price = models.PositiveIntegerField()
-    selected_options = models.JSONField(default=dict)
+    selected_options = models.JSONField(default=dict, null=True)
 
     # [추가] 편의를 위해 restaurant 속성을 추가합니다.
     @property
@@ -152,8 +161,56 @@ class OrderItem(models.Model):
 # 추가적인 리팩토링이 필요할 수 있습니다. (예: Order 대신 'SubOrder' 같은 모델과 연결)
 
 class Delivery(models.Model):
-    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='delivery_info')
-    # ... (이하 생략)
+    # 메인 Order에 대한 ForeignKey (하나의 Order에 여러 Delivery가 있을 수 있음)
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='deliveries')
+    # 이 배달이 특정 레스토랑에 대한 것임을 나타냄
+    restaurant = models.ForeignKey('restaurants.Restaurant', on_delete=models.CASCADE, related_name='deliveries')
+    # 이 배달을 담당하는 라이더
+    rider = models.ForeignKey('Rider', on_delete=models.SET_NULL, null=True, blank=True, related_name='deliveries')
+
+    class DeliveryStatus(models.TextChoices):
+        PENDING = '배달 대기' # 배달 시작 전
+        PREPARING = '음식 준비 중' # 레스토랑에서 음식 준비 중
+        PICKED_UP = '픽업 완료' # 라이더가 음식을 픽업함 (배달 시작)
+        ON_THE_WAY = '배달 중' # 라이더가 배달지로 이동 중
+        DELIVERED = '배달 완료' # 배달 완료 (종료)
+        CANCELLED = '배달 취소' # 배달 취소됨
+
+    status = models.CharField(max_length=20, choices=DeliveryStatus.choices, default=DeliveryStatus.PENDING)
+
+    # 시간 관련 필드
+    assigned_at = models.DateTimeField(default=timezone.now, help_text="배달이 시스템에 할당된 시간")
+    departure_time = models.DateTimeField(null=True, blank=True, help_text="라이더가 출발한 시간") # 출발 시간
+    estimated_arrival_time = models.DateTimeField(null=True, blank=True, help_text="예상 도착 시간") # 도착 예정시간
+    actual_arrival_time = models.DateTimeField(null=True, blank=True, help_text="실제 도착 시간 (배달 완료 시)") # 도착 시간
+
+    class Meta:
+        verbose_name = "배달"
+        verbose_name_plural = "배달 목록"
+
+    def __str__(self):
+        return f"주문 #{self.order.id} - {self.restaurant.name} 배달"
+
+    # 편의 메서드 (예시)
+    def start_delivery(self):
+        """배달 상태를 '배달 중'으로 변경하고 출발 시간을 기록합니다."""
+        if self.status in [self.DeliveryStatus.PENDING, self.DeliveryStatus.PREPARING, self.DeliveryStatus.PICKED_UP]:
+            self.status = self.DeliveryStatus.ON_THE_WAY
+            self.departure_time = timezone.now()
+            # estimated_arrival_time 계산 로직 추가 가능
+            self.save()
+
+    def complete_delivery(self):
+        """배달 상태를 '배달 완료'로 변경하고 실제 도착 시간을 기록합니다."""
+        if self.status == self.DeliveryStatus.ON_THE_WAY:
+            self.status = self.DeliveryStatus.DELIVERED
+            self.actual_arrival_time = timezone.now()
+            self.save()
+
+    def cancel_delivery(self):
+        """배달 상태를 '배달 취소'로 변경합니다."""
+        self.status = self.DeliveryStatus.CANCELLED
+        self.save()
 
 class Rider(models.Model):
     name = models.CharField(max_length=100)
