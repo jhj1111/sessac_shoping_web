@@ -106,13 +106,12 @@ class MyPageDashboardView(LoginRequiredMixin, TemplateView):
         for order in all_orders:
             grouped_items = order.group_items_by_restaurant()
             orders_with_grouped_items.append({
-                'restaurant': order.restaurants[0],
                 'order': order,
                 'grouped_items': grouped_items
             })
 
             # print(f"restaurnat : {order.restaurants[0]}")
-            # print(f"grouped_items : {grouped_items}")
+            # print(f"order.status : {order.status}")
         
         order_status_counts = user.get_order_status_counts()
         
