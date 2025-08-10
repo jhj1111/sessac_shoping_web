@@ -1,0 +1,14 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterButtons = document.querySelectorAll('.mypage-choose-date-button .btn');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filterValue = this.dataset.filter;
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('filter', filterValue);
+                window.location.href = currentUrl.toString();
+            });
+        });
+    });
+</script>

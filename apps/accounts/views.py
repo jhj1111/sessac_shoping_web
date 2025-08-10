@@ -3,6 +3,8 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, TemplateView, ListView, View
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import User, Address
 from .forms import UserRegistrationForm, ProfileUpdateForm, AddressForm
@@ -76,24 +78,41 @@ class MyPageDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        # Get filter parameter from GET request, default to 'all'
+        selected_filter = self.request.GET.get('filter', 'all')
+        context['selected_filter'] = selected_filter # Pass to template
+
         all_orders = Order.objects.filter(user=user).order_by('-order_time')
+
+        # Apply filtering based on selected_filter
+        if selected_filter == 'recent_15_days':
+            start_date = timezone.now() - timedelta(days=15)
+            all_orders = all_orders.filter(order_time__gte=start_date)
+        elif selected_filter == '1_month':
+            start_date = timezone.now() - timedelta(days=30) # Approx 1 month
+            all_orders = all_orders.filter(order_time__gte=start_date)
+        elif selected_filter == '3_months':
+            start_date = timezone.now() - timedelta(days=90) # Approx 3 months
+            all_orders = all_orders.filter(order_time__gte=start_date)
+        elif selected_filter == '6_months':
+            start_date = timezone.now() - timedelta(days=180) # Approx 6 months
+            all_orders = all_orders.filter(order_time__gte=start_date)
+        elif selected_filter == 'test_2hours':
+            start_date = timezone.now() - timedelta(hours=2) # Approx 6 months
+            all_orders = all_orders.filter(order_time__gte=start_date)
+        # 'all' filter means no date filtering, so no 'else' needed here
+
         orders_with_grouped_items = [] 
         for order in all_orders:
             grouped_items = order.group_items_by_restaurant()
-            
-            # --- DEBUG PRINT for restaurant image path ---
-            # for restaurant, items in grouped_items.items():
-            #     image_url = None
-            #     if restaurant.image:
-            #         image_url = restaurant.image.url
-            #     print(f"DEBUG: Restaurant: {order.restaurants[0].image.url}, Image URL: {image_url}")
-            # --- END DEBUG PRINT ---
-
             orders_with_grouped_items.append({
                 'restaurant': order.restaurants[0],
                 'order': order,
                 'grouped_items': grouped_items
             })
+
+            # print(f"restaurnat : {order.restaurants[0]}")
+            # print(f"grouped_items : {grouped_items}")
         
         order_status_counts = user.get_order_status_counts()
         
