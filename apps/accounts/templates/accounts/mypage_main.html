@@ -116,30 +116,48 @@
     </div>
     
     <div class="row text-center">
-        <div class="col-3">
-            <div class="status-item">
-                <div class="status-count">{{ order_counts.payment_pending|default:"0" }}</div>
-                <div class="status-label">결제완료</div>
+        {% for order_status, counts in order_status_counts.items %}
+            <div class="col-2">
+                <div class="status-item">
+                    <div class="status-count">{{ counts }}</div>
+                    <div class="status-label">{{ order_status }}</div>
+                </div>
+            </div>
+        {% endfor %}
+    </div> {# Close the row for order status counts #}
+    {# Start a new row for orders_with_grouped_items #}
+    <div class="row mt-4"> {# Added margin-top for separation #}
+    {% for order_data in orders_with_grouped_items %} {# Corrected variable name #}
+        <div class="col-12 mb-4"> {# Each order takes full width, with some bottom margin #}
+            <div class="card">
+                <div class="card-header">
+                    <img src="{{ order_data.restaurant.image.url|default:'/static/no_image.jpg' }}" alt="...", class="me-2" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
+                    <h6 class="card-title mb-0">{{ order_data.restaurant.name }}</h6>
+                    <h5 class="mb-0">주문 번호: {{ order_data.order.id }} <span class="badge bg-info">{{ order_data.order.get_status_display }}</span></h5>
+                    <small class="text-muted">주문 시간: {{ order_data.order.order_time|date:"Y년 m월 d일 H시 i분" }}</small>
+                </div>
+                <div class="card-body p-0"> {# Remove default padding to control list-group padding #}
+                    {% for restaurant, items in order_data.grouped_items.items %}
+                        <div class="card-body border-bottom"> {# Use card-body for each restaurant group, with border #}
+                            <ul class="list-group list-group-flush">
+                                {% for item in items %}
+                                    <img src={{ item.menu.image.url|default:'/static/no_image.jpg' }} alt="{{ item.name }}" class="me-2" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ item.menu.name }} - {{ item.quantity }}개
+                                        <span class="badge bg-primary rounded-pill">{{ item.total_price }}원</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        <div class="col-3">
-            <div class="status-item">
-                <div class="status-count">{{ order_counts.preparing|default:"0" }}</div>
-                <div class="status-label">상품준비중</div>
-            </div>
+    {% empty %}
+        <div class="col-12">
+            <p class="text-center text-muted">주문 내역이 없습니다.</p>
         </div>
-        <div class="col-3">
-            <div class="status-item">
-                <div class="status-count">{{ order_counts.delivering|default:"0" }}</div>
-                <div class="status-label">배송중</div>
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="status-item">
-                <div class="status-count">{{ order_counts.delivered|default:"0" }}</div>
-                <div class="status-label">배송완료</div>
-            </div>
-        </div>
-    </div>
+    {% endfor %}
+    </div> {# Close the row for orders_with_grouped_items #}
 </div>
 {% endblock %}
