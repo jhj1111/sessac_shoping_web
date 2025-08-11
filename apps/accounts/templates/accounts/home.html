@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>홈 페이지</title>
+</head>
+<body>
+    <h1>홈 페이지</h1>
+
+    {% if user.is_authenticated %}
+<p>안녕하세요, {{ user.username }}님!</p>
+
+ <form action="{% url 'logout' %}" method="post" style="display:inline;">
+ {% csrf_token %}
+ <button type="submit" class="btn btn-link" style="padding:0; border:none;">로그아웃</button>
+     </form>
+{% else %}
+    <a href="{% url 'login' %}">로그인</a>
+{% endif %}
+
+</body>
+</html>
