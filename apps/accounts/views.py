@@ -22,17 +22,17 @@ from ..orders.models import Order
 class RegisterView(FormView):
     form_class = RegisterForm
     template_name = 'accounts/register.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('mypage')
     def form_valid(self, form):
         form.save()
         return super(RegisterView, self).form_valid(form)
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('mypage')
 
 def home(request):
-    return render(request, 'accounts/home.html')
+    return render(request, 'accounts/mypage_main.html')
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('home')
