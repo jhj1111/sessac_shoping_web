@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Address, PaymentMethod
+from .models import CustomUser, Address, PaymentMethod
 
-@admin.register(User)
+@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     """커스텀 User 모델을 위한 Admin 클래스"""
     # 기존 UserAdmin의 fieldsets에 커스텀 필드 추가
