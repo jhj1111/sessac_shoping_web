@@ -14,13 +14,12 @@ class Restaurant(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     category = models.CharField(max_length=50)
     operating_hours = models.JSONField()
-    minimum_order = models.CharField(default=15000)
-    delivery_fee = models.CharField(default=3000)
+    minimum_order = models.PositiveIntegerField()
+    delivery_fee = models.PositiveIntegerField()
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
     review_count = models.PositiveIntegerField(default=0)
     is_open = models.BooleanField(default=True)
     owner_notice = models.TextField(blank=True, null=True)
-
 
     def __str__(self):
         return self.name
@@ -174,3 +173,10 @@ class Option(models.Model):
     def __str__(self):
         return f'{self.option_group.name} - {self.name} (+{self.extra_price}원)'
 
+
+    def calculate_price(self, selected_choices):
+        # Placeholder for price calculation based on selected options
+        pass
+
+class Post(models.Model):
+        pass

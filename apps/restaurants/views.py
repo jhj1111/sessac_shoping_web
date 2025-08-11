@@ -1,11 +1,16 @@
 import json
 from django.utils import timezone
 
+from django.shortcuts import render
+from django.views.generic import ListView, DetailView, CreateView
+from apps.restaurants.models import Post
+from django.shortcuts import render
+from django.views.generic import TemplateView
+
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 
@@ -15,7 +20,23 @@ from .forms import ReviewForm
 # 'accounts' 앱의 Address 모델을 가져옵니다. 앱 구조에 맞게 수정이 필요할 수 있습니다.
 from apps.accounts.models import Address
 
+def post_list(request):
+    return render(request, template_name='main/base.html')
 
+
+# Create your views here.
+class PostListView(ListView):
+    model = Post
+    template_name = 'main/post_list.html'
+
+
+
+class MainDetailView(TemplateView):
+    #model = Post
+    template_name = 'main/post_main_detail.html'
+    # 특정 상세 페이지가 아니라서 이렇게만 하면 이동
+
+# 상세 페이지
 class RestaurantListView(ListView):
     """
     모든 음식점 목록을 보여주는 메인 페이지

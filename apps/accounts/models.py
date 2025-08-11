@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db.models import Sum
 from django.utils import timezone
 from django.templatetags.static import static
+from apps.orders.models import Order
+from django.db.models import Count
 
 
 
@@ -12,6 +14,21 @@ class CustomUser(AbstractUser):
     address = models.CharField(max_length=200, blank=True, null=True)
     detail_address = models.CharField(max_length=200, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
+
+    def get_order_status_counts(self):
+        """자신의 주문을 상태별로 집계하여 개수를 반환합니다."""
+        # Order 모델의 ORER_STATUS를 참조해야 합니다.
+        status_counts = {status_name: 0 for status_value, status_name in Order.ORER_STATUS}
+        get_order_status_name = {status_value: status_name for status_value, status_name in Order.ORER_STATUS}
+
+        user_orders_counts = Order.objects.filter(user=self) \
+            .values('status') \
+            .annotate(count=Count('status'))
+
+        for item in user_orders_counts:
+            status_counts[get_order_status_name[item['status']]] = item['count']
+
+        return status_counts
 
 
     GRADE_CHOICES = [

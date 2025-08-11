@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "rest_framework",
+    'django.contrib.sites',
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -121,14 +122,17 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
-SIE_ID = 1
+SITE_ID = 1
 # deprecated
 # ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'passwords2*']
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-LOGIN_REDIRECT_URL = '/accounts/'
-LOGOUT_REDIRECT_URL = '/accounts/'
 
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*',]
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+LOGIN_REDIRECT_URL = '/restaurants/'
+LOGOUT_REDIRECT_URL = '/restaurants/'
+
+ACCOUNT_SIGNUP_EMAIL_ENTER_YOUR_OWN = False
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
