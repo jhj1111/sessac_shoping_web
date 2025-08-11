@@ -1,0 +1,54 @@
+{% load socialaccount %}
+<nav class="navbar navbar-expand-lg custom_nav-container ">
+  <a class="navbar-brand" href="{% url 'post-list' %}">
+    <span>
+      sesac
+    </span>
+  </a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class=""> </span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav  mx-auto ">
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'main-detail' %}">네비게이션1 </a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'post-list' %}">네비게이션2</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'post-list' %}">네비게이션3</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'main-detail' %}">네비게이션4</a>
+      </li>
+    </ul>
+    <div class="user_option">
+      <a href="" class="user_link">
+        <i class="fa fa-user" aria-hidden="true"></i>
+      </a>
+      <a class="cart_link" href="{% url 'main-detail' %}">
+        <span>장바구니</span>
+      </a>
+    </div>
+  </div>
+
+  <ul class="navbar-nav ms-auto">
+       {% if user.is_authenticated %}
+        <li class="nav-item active">
+            {{ user.username }}님 반갑습니다.
+        </li>
+       <li class="nav-item active">
+           <a class="nav-link" href="#">Logout</a>
+        </li>
+       {% else %}
+        <li class="nav-item active">
+            <a class="nav-link" href="#"
+                data-bs-toggle="modal" data-bs-target="#exampleModal">Login
+            </a>
+        </li>
+       {% endif %}
+  </ul>
+</nav>
