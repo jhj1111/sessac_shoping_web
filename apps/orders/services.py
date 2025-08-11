@@ -1,4 +1,7 @@
-from .models import Order, OrderItem, Cart
+from ..restaurants.models import Restaurant, Menu
+from .models import Order, OrderItem, Cart, CartItem
+from ..accounts.models import Address
+from django.shortcuts import get_object_or_404
 
 
 class OrderService:
@@ -11,12 +14,12 @@ class OrderService:
         OrderService.validate_order(cart)
         
         # 2. 배달비 계산
-        delivery_fee = OrderService.calculate_delivery_fee(address)
+        # delivery_fee = OrderService.calculate_delivery_fee(address)
         
         # 3. Order 객체 생성
         order = Order.objects.create(
             user=user,
-            delivery_fee=delivery_fee,
+            # delivery_fee=delivery_fee,
             special_requests=special_requests,
             payment_method=payment_method
         )
@@ -68,3 +71,38 @@ class CartService:
         """장바구니에 담긴 상품들이 현재 판매 가능한 상태인지 확인합니다."""
         # 품절, 단종 등 확인
         pass
+
+    @staticmethod
+    def create_order_from_cart_data(user, restaurant_pk, cart_items):
+        restaurant = get_object_or_404(Restaurant, pk=restaurant_pk)
+        total_price = 0
+        menus = []
+
+        for item_data in cart_items:
+            menu = get_object_or_404(Menu, pk=item_data['menu_id'])
+            quantity = item_data['quantity']
+            total_price += menu.price * quantity
+            menus.append({'menu': menu, 'quantity': quantity, 'price': menu.price})
+
+        # 기본 주소를 사용하거나, 주소 선택 로직 필요
+        address = user.addresses.first()
+        if not address:
+            raise Exception("주소 정보가 없습니다. 마이페이지에서 주소를 등록해주세요.")
+
+        order = Order.objects.create(
+            user=user,
+            restaurant=restaurant,
+            address=address.address, # 주소 모델의 address 필드 사용
+            total_price=total_price,
+            payment_method='CARD' # 기본값 설정 또는 사용자 선택
+        )
+
+        for menu_data in menus:
+            OrderItem.objects.create(
+                order=order,
+                menu=menu_data['menu'],
+                quantity=menu_data['quantity'],
+                price=menu_data['price']
+            )
+        
+        return order

@@ -6,8 +6,8 @@ from django.http import JsonResponse # Import JsonResponse
 from django.views.decorators.csrf import csrf_exempt # For AJAX POST without CSRF token (for testing, not recommended for production)
 from django.utils.decorators import method_decorator # To apply csrf_exempt to CBV
 
-# from .models import Cart, Order
-# from .services import CartService, OrderService
+from .models import Cart, Order
+from .services import OrderService, CartService
 
 from ..restaurants.models import Menu
 
@@ -39,8 +39,10 @@ class OrderCreateView(LoginRequiredMixin, CreateView):
     """
     model = Order
     template_name = 'orders/order_form.html'
-    fields = ['address', 'special_requests', 'payment_method'] # 예시 필드
-    success_url = reverse_lazy('orders:order_complete') # 주문 완료 페이지로 이동
+    # fields = ['address', 'special_requests', 'payment_method'] # 예시 필드
+    fields = ['special_requests', 'payment_method'] # 예시 필드
+    # success_url = reverse_lazy('orders:order_complete') # 주문 완료 페이지로 이동
+    success_url = reverse_lazy('') # 임시
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -64,4 +66,44 @@ class OrderCreateView(LoginRequiredMixin, CreateView):
         )
         self.object = order
         return redirect(self.get_success_url())
+
+
+import json
+from django.urls import reverse
+
+class OrderAPIView(LoginRequiredMixin, View):
+    """
+    AJAX 요청을 처리하여 주문을 생성하는 API 뷰
+    """
+    def post(self, request, *args, **kwargs):
+        # 로그인하지 않은 사용자에 대한 추가 방어
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'error': '로그인이 필요합니다.'}, status=401)
+
+        try:
+            data = json.loads(request.body)
+            cart_items = data.get('cart_items', [])
+            restaurant_pk = data.get('restaurant_pk')
+
+            if not cart_items or not restaurant_pk:
+                return JsonResponse({'success': False, 'error': '잘못된 요청입니다.'}, status=400)
+
+            # OrderService를 사용하여 주문 생성 로직 호출
+            # (OrderService가 cart_items를 직접 처리하도록 수정 필요)
+            order = OrderService.create_order_from_cart_data(
+                user=request.user,
+                restaurant_pk=restaurant_pk,
+                cart_items=cart_items
+            )
+
+            # 성공 응답 반환
+            # mypage_orders.html을 사용한다고 가정
+            redirect_url = reverse('accounts:mypage_orders') # 주문 상세 페이지 URL로 변경 가능
+            return JsonResponse({'success': True, 'redirect_url': redirect_url})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': '잘못된 형식의 요청입니다.'}, status=400)
+        except Exception as e:
+            # 기타 예외 처리
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
