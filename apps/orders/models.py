@@ -168,15 +168,25 @@ class Delivery(models.Model):
     # 이 배달을 담당하는 라이더
     rider = models.ForeignKey('Rider', on_delete=models.SET_NULL, null=True, blank=True, related_name='deliveries')
 
-    class DeliveryStatus(models.TextChoices):
-        PENDING = '배달 대기' # 배달 시작 전
-        PREPARING = '음식 준비 중' # 레스토랑에서 음식 준비 중
-        PICKED_UP = '픽업 완료' # 라이더가 음식을 픽업함 (배달 시작)
-        ON_THE_WAY = '배달 중' # 라이더가 배달지로 이동 중
-        DELIVERED = '배달 완료' # 배달 완료 (종료)
-        CANCELLED = '배달 취소' # 배달 취소됨
+    # class DeliveryStatus(models.TextChoices):
+    #     PENDING = '배달 대기' # 배달 시작 전
+    #     PREPARING = '음식 준비 중' # 레스토랑에서 음식 준비 중
+    #     PICKED_UP = '픽업 완료' # 라이더가 음식을 픽업함 (배달 시작)
+    #     ON_THE_WAY = '배달 중' # 라이더가 배달지로 이동 중
+    #     DELIVERED = '배달 완료' # 배달 완료 (종료)
+    #     CANCELLED = '배달 취소' # 배달 취소됨
+    
+    DELEVERY_STATUS = [
+        ('PREPARING', '음식 준비 중'), # 레스토랑에서 음식 준비 중
+        ('PENDING', '배달 대기'), # 배달 시작 전
+        ('PICKED_UP', '픽업 완료'), # 라이더가 음식을 픽업함 (배달 시작)
+        ('ON_THE_WAY', '배달 중'), # 라이더가 배달지로 이동 중
+        ('DELIVERED', '배달 완료'), # 배달 완료 (종료)
+        ('CANCELLED', '배달 취소'), # 배달 취소됨
+    ]
 
-    status = models.CharField(max_length=20, choices=DeliveryStatus.choices, default=DeliveryStatus.PENDING)
+    # status = models.CharField(max_length=20, choices=DeliveryStatus.choices, default=DeliveryStatus.PENDING)
+    status = models.CharField(max_length=20, choices=DELEVERY_STATUS, default='음식 준비 중')
 
     # 시간 관련 필드
     assigned_at = models.DateTimeField(default=timezone.now, help_text="배달이 시스템에 할당된 시간")
