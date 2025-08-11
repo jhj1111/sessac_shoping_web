@@ -1,14 +1,30 @@
 from django.urls import path
-from . import views # views.py 파일을 import
+from . import views
 
-# 이 urls.py 파일이 어떤 앱에 속하는지 명시 (권장)
-
+app_name = 'restaurants'
 
 urlpatterns = [
-    # 함수 기반 뷰 연결 예시
-    # URL 경로: /restaurants/1/
-    # 뷰 함수: views.py의 restaurant_detail 함수
-    # URL 이름: 'detail' (템플릿 등에서 이 이름으로 URL을 쉽게 찾을 수 있음)
-    path('restaurants/<int:restaurant_id>/', views.restaurant_detail, name='detail'),
+    # 가게 목록 (메인 페이지)
+    # /restaurants/
+    path('', views.RestaurantListView.as_view(), name='restaurant_list'),
 
+    # 가게 상세 정보
+    # /restaurants/1/
+    path('<int:pk>/', views.RestaurantDetailView.as_view(), name='restaurant_detail'),
+
+    # 리뷰 작성
+    # /restaurants/1/review/create/
+    path('<int:restaurant_pk>/review/create/', views.ReviewCreateView.as_view(), name='review_create'),
+
+    # 주문 생성 (API)
+    # /restaurants/order/create/
+    path('order/create/', views.OrderCreateView.as_view(), name='order_create'),
+
+    # 사용자 주문 목록
+    # /restaurants/orders/
+    path('orders/', views.UserOrderListView.as_view(), name='order_list'),
+
+    # 주문 상세 정보
+    # /restaurants/orders/1/
+    path('orders/<int:pk>/', views.OrderDetailView.as_view(), name='order_detail'),
 ]

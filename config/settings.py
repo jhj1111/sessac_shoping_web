@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
 
-    'apps.restaurants'
+    'apps.restaurants',
+    'apps.accounts',
 ]
 
 MIDDLEWARE = [
@@ -124,9 +125,10 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ko-kr"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Seoul"
+# TIME_ZONE = "ko"
 
 USE_I18N = True
 
