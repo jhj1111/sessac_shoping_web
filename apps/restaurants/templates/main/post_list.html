@@ -165,166 +165,163 @@
     {% block food_section %}
         <div class="filters-content">
         <div class="row grid">
-          <div class="col-sm-6 col-lg-4 all dessert">  <!-- dessert는 디저트 항목 -->
+        {% for restaurant in restaurants %}
+          <div class="col-sm-6 col-lg-4 all">  <!-- dessert는 디저트 항목 -->
             <div class="box">
               <div>
                 <div class="img-box">
-                  <img src="{% static 'images/about-img.png' %} " alt="">
+                    {% if restaurant.image %}
+                    <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}">
+                    {% else %}
+                    <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
+                    {% endif %}
                 </div>
                 <div class="detail-box">
                   <h5>
-                    가게명1
+                    {{ restaurant.name }}
                   </h5>
                   <p>
-                    가게 파는거 설명1
+                    {{ restaurant.description }}
                   </p>
-                  <!-- 버튼 없애는거
-                  <div class="options">
-                    <a href="">
-                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">
-
-                      </svg>
-                    </a>
-                  </div>
-                  -->
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-sm-6 col-lg-4 all japan">
-            <div class="box">
-              <div>
-                <div class="img-box">
-                  <img src="{% static 'images/about-img.png' %} " alt="">
-                </div>
-                <div class="detail-box">
-                  <h5>
-                    가게명 2
-                  </h5>
-                  <p>
-                    2
-                  </p>
-                  <!--
-                  <div class="options">
-
-                    <a href="">
-                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">
-
-                      </svg>
-                    </a>
-                  </div>
-                  -->
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-4 all korea">
-            <div class="box">
-              <div>
-                <div class="img-box">
-                  <img src="{% static 'images/about-img.png' %} " alt="">
-                </div>
-                <div class="detail-box">
-                  <h5>
-                    가게명 3
-                  </h5>
-                  <p>
-                    3
-                  </p>
-                  <!--
-                  <div class="options">
-
-                    <a href="">
-                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">
-
-                      </svg>
-                    </a>
-                  </div>
-                  -->
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-4 all usa">  <!-- dessert는 디저트 항목 -->
-            <div class="box">
-              <div>
-                <div class="img-box">
-                  <img src="{% static 'images/about-img.png' %} " alt="">
-                </div>
-                <div class="detail-box">
-                  <h5>
-                    가게명4
-                  </h5>
-                  <p>
-                    가게 파는거 설명1
-                  </p>
-                  <!-- 버튼 없애는거
-                  <div class="options">
-                    <a href="">
-                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">
-
-                      </svg>
-                    </a>
-                  </div>
-                  -->
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-4 all china">
-            <div class="box">
-              <div>
-                <div class="img-box">
-                  <img src="{% static 'images/about-img.png' %} " alt="">
-                </div>
-                <div class="detail-box">
-                  <h5>
-                    가게명 5
-                  </h5>
-                  <p>
-                    2
-                  </p>
-                  <!--
-                  <div class="options">
-
-                    <a href="">
-                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">
-
-                      </svg>
-                    </a>
-                  </div>
-                  -->
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-4 all usa">
-            <div class="box">
-              <div>
-                <div class="img-box">
-                  <img src="{% static 'images/about-img.png' %} " alt="">
-                </div>
-                <div class="detail-box">
-                  <h5>
-                    가게명 6
-                  </h5>
-                  <p>
-                    3
-                  </p>
-                  <!--
-                  <div class="options">
-
-                    <a href="">
-                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">
-
-                      </svg>
-                    </a>
-                  </div>
-                  -->
-                </div>
-              </div>
-            </div>
-          </div>
+        {% endfor %}
+{#          <div class="col-sm-6 col-lg-4 all japan">#}
+{#            <div class="box">#}
+{#              <div>#}
+{#                <div class="img-box">#}
+{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
+{#                </div>#}
+{#                <div class="detail-box">#}
+{#                  <h5>#}
+{#                    가게명 2#}
+{#                  </h5>#}
+{#                  <p>#}
+{#                    2#}
+{#                  </p>#}
+{#                  <!--#}
+{#                  <div class="options">#}
+{##}
+{#                    <a href="">#}
+{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
+{##}
+{#                      </svg>#}
+{#                    </a>#}
+{#                  </div>#}
+{#                  -->#}
+{#                </div>#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
+{#          <div class="col-sm-6 col-lg-4 all korea">#}
+{#            <div class="box">#}
+{#              <div>#}
+{#                <div class="img-box">#}
+{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
+{#                </div>#}
+{#                <div class="detail-box">#}
+{#                  <h5>#}
+{#                    가게명 3#}
+{#                  </h5>#}
+{#                  <p>#}
+{#                    3#}
+{#                  </p>#}
+{#                  <!--#}
+{#                  <div class="options">#}
+{##}
+{#                    <a href="">#}
+{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
+{##}
+{#                      </svg>#}
+{#                    </a>#}
+{#                  </div>#}
+{#                  -->#}
+{#                </div>#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
+{#          <div class="col-sm-6 col-lg-4 all usa">  <!-- dessert는 디저트 항목 -->#}
+{#            <div class="box">#}
+{#              <div>#}
+{#                <div class="img-box">#}
+{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
+{#                </div>#}
+{#                <div class="detail-box">#}
+{#                  <h5>#}
+{#                    가게명4#}
+{#                  </h5>#}
+{#                  <p>#}
+{#                    가게 파는거 설명1#}
+{#                  </p>#}
+{#                  <!-- 버튼 없애는거#}
+{#                  <div class="options">#}
+{#                    <a href="">#}
+{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
+{##}
+{#                      </svg>#}
+{#                    </a>#}
+{#                  </div>#}
+{#                  -->#}
+{#                </div>#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
+{#          <div class="col-sm-6 col-lg-4 all china">#}
+{#            <div class="box">#}
+{#              <div>#}
+{#                <div class="img-box">#}
+{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
+{#                </div>#}
+{#                <div class="detail-box">#}
+{#                  <h5>#}
+{#                    가게명 5#}
+{#                  </h5>#}
+{#                  <p>#}
+{#                    2#}
+{#                  </p>#}
+{#                  <!--#}
+{#                  <div class="options">#}
+{##}
+{#                    <a href="">#}
+{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
+{##}
+{#                      </svg>#}
+{#                    </a>#}
+{#                  </div>#}
+{#                  -->#}
+{#                </div>#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
+{#          <div class="col-sm-6 col-lg-4 all usa">#}
+{#            <div class="box">#}
+{#              <div>#}
+{#                <div class="img-box">#}
+{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
+{#                </div>#}
+{#                <div class="detail-box">#}
+{#                  <h5>#}
+{#                    가게명 6#}
+{#                  </h5>#}
+{#                  <p>#}
+{#                    3#}
+{#                  </p>#}
+{#                  <!--#}
+{#                  <div class="options">#}
+{##}
+{#                    <a href="">#}
+{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
+{##}
+{#                      </svg>#}
+{#                    </a>#}
+{#                  </div>#}
+{#                  -->#}
+{#                </div>#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
         </div>
       </div>  <!-- grid-->
       <div class="btn-box">

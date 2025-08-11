@@ -20,6 +20,7 @@ class Restaurant(models.Model):
     review_count = models.PositiveIntegerField(default=0)
     is_open = models.BooleanField(default=True)
     owner_notice = models.TextField(blank=True, null=True)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name

@@ -1,4 +1,6 @@
 import json
+from urllib import request
+
 from django.utils import timezone
 
 from django.shortcuts import render
@@ -24,11 +26,19 @@ def post_list(request):
     return render(request, template_name='main/base.html')
 
 
-# Create your views here.
+
 class PostListView(ListView):
     model = Post
     template_name = 'main/post_list.html'
+    context_object_name = 'restaurants'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # request 객체는 self.request 로 접근해야 합니다.
+        user = self.request.user
+        restaurants = Restaurant.objects.all()
+        context['restaurants'] = restaurants
+        return context
 
 
 class MainDetailView(TemplateView):
@@ -43,8 +53,22 @@ class RestaurantListView(ListView):
     """
     model = Restaurant
     template_name = 'restaurants/restaurant_list.html'
+    #template_name = 'main/post_list.html'
     context_object_name = 'restaurants'
     paginate_by = 10  # 한 페이지에 10개의 가게를 보여줍니다.
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # request 객체는 self.request 로 접근해야 합니다.
+        user = self.request.user
+        restaurants = Restaurant.objects.all()
+        context['restaurants'] = restaurants
+        return context
+
+
+
+
+# 해당 페이지로 데이터를 가져오게 작성 필요
 
 
 class RestaurantDetailView(DetailView):

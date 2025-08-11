@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 app_name = 'restaurants'
 urlpatterns = [
     path('', views.PostListView.as_view(), name='post-list'),
+    path('restaurants/', views.RestaurantListView.as_view(), name='restaurant_list'),
     path('main-detail/', views.MainDetailView.as_view(), name='main-detail'),
     path('<int:pk>/', views.RestaurantDetailView.as_view(), name='restaurant_detail'),
     # 리뷰 작성
@@ -23,3 +24,6 @@ urlpatterns = [
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
