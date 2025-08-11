@@ -25,7 +25,8 @@ from apps import accounts
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('accounts/', include('allauth.urls')),
-    path("mypage/", include("apps.accounts.urls")),
+    path("mypage/", include("apps.mypage.urls")),
+    path("restaurants/", include("apps.restaurants.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
