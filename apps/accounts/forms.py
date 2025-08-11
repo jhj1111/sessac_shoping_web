@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from .models import CustomUser
 
 User = get_user_model()
 
@@ -27,3 +28,18 @@ class RegisterForm(UserCreationForm):
         user.phone = self.cleaned_data["phone"]
         user.save()
         return user
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'detail_address', 'gender', 'birth_date']
+        widgets = {
+            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'birth_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'detail_address': forms.TextInput(attrs={'class': 'form-control'}),
+        }

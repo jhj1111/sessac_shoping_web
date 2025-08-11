@@ -1,0 +1,85 @@
+{% extends 'mypage/mypage_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>My Profile</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="{{ grade_icon_url }}" alt="{{ user_grade }} icon" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    <h4>{{ user_info.get_full_name|default:user_info.username }}</h4>
+                    <p class="text-muted">{{ user_grade }}</p>
+                </div>
+                <div class="col-md-9">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Email</th>
+                                <td>{{ user_info.email }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Phone</th>
+                                <td>{{ user_info.phone|default:'Not provided' }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Address</th>
+                                <td>{{ user_info.address|default:'' }} {{ user_info.detail_address|default:'' }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Points</th>
+                                <td>{{ user_points }} P</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Coupons</th>
+                                <td>{{ user_coupons }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <a href="{% url 'mypage:profile_edit' %}" class="btn btn-primary">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Recent Orders</h3>
+        </div>
+        <div class="list-group list-group-flush">
+            {% for order_data in recent_orders %}
+                {% if "배송 완료" in order_data.order.get_status_display or "주문 완료" in order_data.order.get_status_display %}
+                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Order #{{ order_data.order.id }}</h5>
+                            <small>{{ order_data.order.order_time|date:"Y-m-d" }}</small>
+                        </div>
+
+                        <p class="mb-1">
+                                {% for restaurant, items in order_data.grouped_items.items %}
+                                    <strong>{{ restaurant.name }}</strong>: 
+                                    {% for item in items %}
+                                        {{ item.menu.name }} x{{ item.quantity }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% if not forloop.last %}<br>{% endif %}
+                                {% endfor %}
+                        </p>
+                        <small class="text-muted">Total: {{ order_data.order.total_amount }}원 &bull; Status: {{ order_data.order.get_status_display }}</small>
+                    </a>
+                {% endif %} 
+
+                {% empty %}
+                    <div class="list-group-item">
+                        <p class="text-center text-muted">No recent orders found.</p>
+                    </div>
+            {% endfor %}
+        </div>
+        <div class="card-footer text-end">
+            <a href="{% url 'mypage:mypage_orders' %}">View all orders</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
