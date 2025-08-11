@@ -10,7 +10,7 @@ from django.views.generic import FormView
 from .forms import RegisterForm
 from django.contrib.auth.views import LogoutView
 
-from .models import CustomUser, Address
+# from .models import CustomUser, Address
 
 
 from ..orders.models import Order
@@ -22,19 +22,18 @@ from ..orders.models import Order
 class RegisterView(FormView):
     form_class = RegisterForm
     template_name = 'accounts/register.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('restaurants:post-list')
     def form_valid(self, form):
         form.save()
         return super(RegisterView, self).form_valid(form)
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('restaurants:post-list')
 
-def home(request):
-    return render(request, 'accounts/home.html')
+
 
 class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy('home')
+    next_page = reverse_lazy('restaurants:post-list')
 
 

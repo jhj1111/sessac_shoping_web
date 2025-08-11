@@ -71,3 +71,6 @@ class MenuOption(models.Model):
     def calculate_price(self, selected_choices):
         # Placeholder for price calculation based on selected options
         pass
+
+class Post(models.Model):
+        pass
