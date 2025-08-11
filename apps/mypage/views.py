@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, UpdateView, TemplateView, ListView, View
+
+from django.views.generic import CreateView, UpdateView, TemplateView, ListView, View, DeleteView
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout
+
 from django.utils import timezone
 from datetime import timedelta
 
@@ -135,3 +138,16 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_object(self, queryset=None):
         return self.request.user
+
+class AccountDeleteView(LoginRequiredMixin, DeleteView):
+    model = CustomUser
+    template_name = 'mypage/account_delete.html'
+    success_url = reverse_lazy('restaurants:post-list')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        response = super().post(request, *args, **kwargs)
+        return response
