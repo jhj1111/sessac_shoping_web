@@ -105,7 +105,7 @@ class OrderStatusView(LoginRequiredMixin, UpdateView):
         order = self.get_object()
         order.update_status(new_status)
 
-@method_decorator(csrf_exempt, name='dispatch') # For testing, remove in production and use CSRF token
+# @method_decorator(csrf_exempt, name='dispatch') # For testing, remove in production and use CSRF token
 class CancelOrderView(LoginRequiredMixin, View):
     """
     주문 취소 처리 (POST 요청)
