@@ -78,6 +78,46 @@
         background-color: #85aed6; /* Adjusted hover color */
         border-color: #b89868; /* Adjusted hover border color */
     }
+    .delivery-status-tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .delivery-status-tooltip .tooltip-text {
+        visibility: hidden;
+        width: 250px; /* Increased width for better readability */
+        background-color: #B5CEC8;
+        color: #fff;
+        text-align: left; /* Align text to the left */
+        border-radius: 6px;
+        padding: 8px; /* Increased padding */
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -125px; /* Centering the tooltip */
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.85rem; /* Smaller font size for the tooltip content */
+        line-height: 1.4; /* Adjust line height */
+    }
+
+    .delivery-status-tooltip .tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #555 transparent transparent transparent;
+    }
+
+    .delivery-status-tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
 </style>
 
 <div class="mypage-header mb-4">
@@ -154,7 +194,22 @@
             <div class="card">
                 <div class="card-header">
                     <h6 class="card-title mb-0">{{ order_data.restaurant.name }}</h6>
-                    <h5 class="mb-0">주문 번호: {{ order_data.order.id }} <span class="badge bg-info">{{ order_data.order.get_status_display }}</span></h5>
+                    <h5 class="mb-0">주문 번호: {{ order_data.order.id }}
+                        {% if order_data.order.get_status_display == '배송 중' %}
+                            <span class="badge bg-info delivery-status-tooltip">{{ order_data.order.get_status_display }}
+                                <span class="tooltip-text">
+                                    {% for delivery in order_data.order.deliveries.all %}
+                                        주문 상태 : {{ delivery.get_status_display }}<br>
+                                        예상 도착 시간 : {{ delivery.estimated_arrival_time|date:"H:i" }}<br>
+                                    {% empty %}
+                                        배송 정보 없음
+                                    {% endfor %}
+                                </span>
+                            </span>
+                        {% else %}
+                            <span class="badge bg-info">{{ order_data.order.get_status_display }}</span>
+                        {% endif %}
+                    </h5>
                     <h5 class="mb-0">총 금액: {{ order_data.order.total_amount }}</h5>
                     <small class="text-muted">주문 시간: {{ order_data.order.order_time|date:"Y년 m월 d일 H시 i분" }}</small>
                 </div>
