@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.payments",
     "apps.orders",
+    "apps.mypage",
     "apps.restaurants",
 ]
 
