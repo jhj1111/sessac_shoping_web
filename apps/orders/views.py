@@ -6,8 +6,8 @@ from django.http import JsonResponse # Import JsonResponse
 from django.views.decorators.csrf import csrf_exempt # For AJAX POST without CSRF token (for testing, not recommended for production)
 from django.utils.decorators import method_decorator # To apply csrf_exempt to CBV
 
-from .models import Cart, Order
-from .services import CartService, OrderService
+# from .models import Cart, Order
+# from .services import CartService, OrderService
 
 class CartView(LoginRequiredMixin, View):
     """
