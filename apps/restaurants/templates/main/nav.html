@@ -1,10 +1,5 @@
 {% load socialaccount %}
 <nav class="navbar navbar-expand-lg custom_nav-container ">
-  <a class="navbar-brand" href="{% url 'restaurants:post-list' %}">
-    <span>
-      sesac
-    </span>
-  </a>
 
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class=""> </span>
@@ -13,28 +8,18 @@
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav  mx-auto ">
       <li class="nav-item active">
-        <a class="nav-link" href="{% url 'restaurants:main-detail' %}">네비게이션1 </a>
+        <a class="nav-link" href="{% url 'restaurants:post-list' %}">Home </a>
       </li>
       <li class="nav-item active">
-        <a class="nav-link" href="{% url 'restaurants:post-list' %}">네비게이션2</a>
+        <a class="nav-link" href="{% url 'restaurants:main-detail' %}">상세페이지</a>
       </li>
       <li class="nav-item active">
-        <a class="nav-link" href="{% url 'restaurants:post-list' %}">네비게이션3</a>
+        <a class="nav-link" href="{% url 'restaurants:post-list' %}">장바구니</a>
       </li>
       <li class="nav-item active">
-        <a class="nav-link" href="{% url 'restaurants:main-detail' %}">네비게이션4</a>
+        <a class="nav-link" href="{% url 'mypage:mypage_orders' %}">마이페이지</a>
       </li>
     </ul>
-    <div class="user_option">
-      <a href="" class="user_link">
-        <i class="fa fa-user" aria-hidden="true"></i>
-      </a>
-      <a class="cart_link" href="{% url 'restaurants:main-detail' %}">
-        <span>장바구니</span>
-      <a class="cart_link" href="{% url 'mypage:mypage_orders' %}">
-        <span>마이페이지</span>
-      </a>
-    </div>
   </div>
 
   <ul class="navbar-nav ms-auto">

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ restaurant.name }} 리뷰</title>
+</head>
+<body>
+<hr>
+{% comment %} ... 이전 코드 (식당 정보, 메뉴 등) ... {% endcomment %}
+<div class="container mt-4">
+    <h3>⭐ 방문자 리뷰 ({{ restaurant.review_count }})</h3>
+    <div class="d-flex align-items-center mb-3">
+        <span class="badge bg-primary me-2">⭐ {{ restaurant.rating|floatformat:1 }}</span>
+    </div>
+
+    <p class="lead">{{ restaurant.notice }}</p>
+    <hr>
+    
+    {% comment %} 리뷰 목록 보여주기 {% endcomment %}
+    <div class="list-group mt-3">
+        {% for review in reviews %}
+            <div class="list-group-item list-group-item-action flex-column align-items-start">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ review.user.username }}</h5>
+                    <small>별점: {{ review.rating }} / 5.0</small>
+                </div>
+                <p class="mb-1">{{ review.content }}</p>
+                {% if review.image %}
+                    <img src="{{ review.image.url }}" alt="리뷰 사진" class="img-fluid rounded mt-2" style="max-height: 200px;">
+                {% endif %}
+                <small class="text-muted">{{ review.created_at|date:"Y년 m월 d일" }}</small>
+                
+                {% comment %} 사장님 댓글 보여주기 {% endcomment %}
+                {% if review.comment %}
+                <div class="mt-3 p-3 bg-light rounded">
+                    <h6>사장님 댓글</h6>
+                    <p class="mb-0">{{ review.comment.content }}</p>
+                    <small class="text-muted">{{ review.comment.created_at|date:"Y년 m월 d일" }}</small>
+                </div>
+                {% endif %}
+            </div>
+        {% empty %}
+            <p>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요!</p>
+        {% endfor %}
+    </div>
+
+    <hr class="my-4">
+
+    {% comment %} 리뷰 작성 폼 {% endcomment %}
+    <h4>리뷰 남기기</h4>
+    
+    {% if user.is_authenticated %}
+        <form action="{% url 'restaurants:review_create' restaurant.pk %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="id_rating" class="form-label">별점</label>
+                {{ review_form.rating }}
+            </div>
+            <div class="mb-3">
+                <label for="id_content" class="form-label">내용</label>
+                {{ review_form.content }}
+            </div>
+            <div class="mb-3">
+                <label for="id_image" class="form-label">사진 첨부</label>
+                {{ review_form.image }}
+            </div>
+            
+            <button type="submit" class="btn btn-primary">리뷰 등록</button>
+        </form>
+    {% else %}
+        <p><a href="{% url 'accounts:login' %}?next={{ request.path }}">로그인</a> 후 리뷰를 작성할 수 있습니다.</p>
+    {% endif %}
+
+</div>
+
+{% comment %} ... 이후 코드 ... {% endcomment %}
+{% comment %} 메뉴 목록을 보여주는 부분 (기존 코드를 아래와 같이 수정) {% endcomment %}
+<div class="menu-list">
+    {% for category in restaurant.menu_categories.all %}
+        <h4 class="mt-4">{{ category.name }}</h4>
+        <div class="list-group">
+            {% for menu in category.menus.all %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ menu.name }}</strong>
+                        <p class="mb-1 text-muted">{{ menu.description }}</p>
+                        <small>{{ menu.price }}원</small>
+                    </div>
+                    <button class="btn btn-outline-primary add-to-cart-btn" 
+                            data-menu-id="{{ menu.id }}"
+                            data-menu-name="{{ menu.name }}"
+                            data-menu-price="{{ menu.price }}">
+                        담기
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>
+
+<hr>
+
+{% comment %} 장바구니와 주문 버튼이 표시될 영역 {% endcomment %}
+<div class="cart-section mt-5 p-3 border rounded">
+    <h3>🛒 장바구니</h3>
+    <div id="cart-items">
+        <p>장바구니가 비어 있습니다.</p>
+    </div>
+    <div class="text-end mt-3">
+        <h4>총 주문 금액: <span id="total-price">0</span>원</h4>
+        <button id="order-btn" class="btn btn-success btn-lg">주문하기</button>
+    </div>
+</div>
+<script>
+    // 1. 장바구니 데이터와 필요한 HTML 요소들을 변수에 저장
+    const cart = {}; // 장바구니 객체. 예: { "메뉴ID": { name, price, quantity }, ... }
+    
+    const menuList = document.querySelector('.menu-list');
+    const cartItemsContainer = document.querySelector('#cart-items');
+    const totalPriceEl = document.querySelector('#total-price');
+    const orderBtn = document.querySelector('#order-btn');
+
+    // 2. 메뉴 '담기' 버튼 클릭 이벤트 처리
+    menuList.addEventListener('click', function(event) {
+        // 클릭된 요소가 '담기' 버튼이 아니면 무시
+        if (!event.target.classList.contains('add-to-cart-btn')) {
+            return;
+        }
+
+        const btn = event.target;
+        const menuId = btn.dataset.menuId;
+        const menuName = btn.dataset.menuName;
+        const menuPrice = parseInt(btn.dataset.menuPrice);
+
+        // 장바구니에 이미 있는 메뉴인지 확인
+        if (cart[menuId]) {
+            cart[menuId].quantity += 1; // 있으면 수량만 1 증가
+        } else {
+            // 없으면 새로 추가
+            cart[menuId] = {
+                name: menuName,
+                price: menuPrice,
+                quantity: 1,
+            };
+        }
+        
+        console.log('장바구니 상태:', cart);
+        updateCartUI(); // 장바구니 화면 업데이트
+    });
+
+    // 3. 장바구니 화면(UI)을 업데이트하는 함수
+    function updateCartUI() {
+        cartItemsContainer.innerHTML = ''; // 기존 내용을 비움
+        let totalPrice = 0;
+
+        // 장바구니가 비어있는지 확인
+        if (Object.keys(cart).length === 0) {
+            cartItemsContainer.innerHTML = '<p>장바구니가 비어 있습니다.</p>';
+            totalPriceEl.textContent = 0;
+            return;
+        }
+
+        for (const menuId in cart) {
+            const item = cart[menuId];
+            totalPrice += item.price * item.quantity;
+            
+            // 각 메뉴 아이템을 표시할 HTML 생성
+            const itemEl = document.createElement('div');
+            itemEl.classList.add('d-flex', 'justify-content-between', 'my-2');
+            itemEl.innerHTML = `
+                <span>${item.name} x ${item.quantity}</span>
+                <span>${(item.price * item.quantity).toLocaleString()}원</span>
+            `;
+            cartItemsContainer.appendChild(itemEl);
+        }
+
+        totalPriceEl.textContent = totalPrice.toLocaleString();
+    }
+    
+    // 4. '주문하기' 버튼 클릭 이벤트 처리 (백엔드와 통신)
+    orderBtn.addEventListener('click', function() {
+        if (Object.keys(cart).length === 0) {
+            alert('장바구니에 메뉴를 담아주세요!');
+            return;
+        }
+
+        // 백엔드(OrderCreateView)가 기대하는 데이터 형식으로 변환
+        const cartItemsForBackend = Object.keys(cart).map(menuId => {
+            return {
+                menu_id: menuId,
+                quantity: cart[menuId].quantity,
+                options: {} // (옵션 기능은 여기서 추가 구현 필요)
+            };
+        });
+
+        const dataToSend = {
+            restaurant_pk: "{{ restaurant.pk }}",
+            cart_items: cartItemsForBackend,
+        };
+        
+        // Django의 CSRF 보호 기능을 통과하기 위해 토큰을 헤더에 추가
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // fetch API를 사용해 백엔드로 데이터 전송
+        fetch("{% url 'restaurants:order_create' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest', // AJAX 요청임을 명시
+            },
+            body: JSON.stringify(dataToSend)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('주문이 성공적으로 완료되었습니다!');
+                // 백엔드가 알려준 주문 상세 페이지로 이동
+                window.location.href = data.redirect_url;
+            } else {
+                alert('주문에 실패했습니다: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('오류가 발생했습니다. 다시 시도해주세요.');
+        });
+    });
+</script>
+</body>
