@@ -7,11 +7,42 @@ from django.utils import timezone
 from datetime import timedelta
 
 from ..orders.models import Order
+from ..accounts.models import CustomUser
+from ..accounts.forms import UserProfileForm
 # from ..reviews.models import Review
 # from ..favorites.models import Favorite
 # from ..support.models import Inquiry
 
 # Create your views here.
+class MyPageMainView(LoginRequiredMixin, TemplateView):
+    template_name = 'mypage/mypage_main.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Add user information to the context
+        context['user_info'] = user
+        context['user_grade'] = user.get_grade_display()
+        context['user_points'] = user.get_points_balance()
+        context['user_coupons'] = user.get_coupon_count()
+        context['grade_icon_url'] = user.get_grade_icon()
+        context['order_status_counts'] = user.get_order_status_counts()
+        
+        # For recent orders, let's fetch a few recent ones.
+        recent_orders = Order.objects.filter(user=user).order_by('-order_time')[:5]
+        
+        orders_with_grouped_items = [] 
+        for order in recent_orders:
+            grouped_items = order.group_items_by_restaurant()
+            orders_with_grouped_items.append({
+                'order': order,
+                'grouped_items': grouped_items
+            })
+        
+        context['recent_orders'] = orders_with_grouped_items
+        
+        return context
 class MyPageOrderListView(LoginRequiredMixin, TemplateView):
     """마이페이지 대시보드"""
     # template_name = 'mypage/mypage_dashboard.html'
@@ -95,3 +126,12 @@ class MyPageSupportHistoryView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # return Inquiry.objects.filter(user=self.request.user).order_by('-created_at')
         return [] # 임시
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = CustomUser
+    form_class = UserProfileForm
+    template_name = 'mypage/profile_edit.html'
+    success_url = reverse_lazy('mypage:mypage_main')
+
+    def get_object(self, queryset=None):
+        return self.request.user
