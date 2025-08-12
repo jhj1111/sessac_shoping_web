@@ -32,30 +32,47 @@ class PostListView(ListView):
     template_name = 'main/post_list.html'
     context_object_name = 'restaurants'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q', '')
+        if query:
+            queryset = queryset.filter(name__icontains=query)
+        else:
+            queryset = queryset.all()[:6]  # 검색어 없으면 최신 6개
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        categories = Restaurant.CATEGORY_CHOICES
+        query = self.request.GET.get('q', '')
+        context['query'] = query
+
+        categories = Restaurant.CATEGORY_CHOICES  # 카테고리 가져오기
+
+        # user_address 예시 (로그인 유저만)
         user = self.request.user
         user_address = ""
         if user.is_authenticated:
-            user_address = user.address
+            user_address = getattr(user, 'address', '')
+
         restaurants_data = list(Restaurant.objects.all().values('name', 'address'))
         context['user_address'] = user_address
         context['restaurants_data'] = restaurants_data
 
-        # 전체 6개 가져오기 (최신 순으로 변경 원하면 order_by('-id'))
-        restaurants_6 = Restaurant.objects.all()[:6]
-        exclude_ids = [r.id for r in restaurants_6]
+        exclude_ids = [r.id for r in self.get_queryset()]
 
-        # 카테고리별 6개씩, 전체 6개는 제외
         category_restaurants = {}
         for code, name in categories:
             category_restaurants[code] = Restaurant.objects.filter(category=code).exclude(id__in=exclude_ids)[:6]
 
         context['categories'] = categories
-        context['restaurants'] = restaurants_6
         context['category_restaurants'] = category_restaurants
+
+        # 검색 결과로 나온 음식점 리스트
+        context['restaurants'] = self.get_queryset()
+
         return context
+
+
 class MainDetailView(ListView):
     model = Restaurant
     template_name = 'main/post_main_detail.html'
@@ -63,9 +80,20 @@ class MainDetailView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Restaurant.CATEGORY_CHOICES  # 카테고리 목록 추가
+        context['categories'] = Restaurant.CATEGORY_CHOICES
+        context['query'] = self.request.GET.get('q', '')
+        context['result_count'] = context['restaurants'].count()  # 쿼리셋 개수
         return context
     # 특정 상세 페이지가 아니라서 이렇게만 하면 이동
+    def get_queryset(self):
+        queryset = super().get_queryset()  # 기본 쿼리셋: Restaurant.objects.all()
+        query = self.request.GET.get('q', '')  # URL 쿼리 파라미터 'q' 값을 가져옴
+        if query:
+            # 검색어가 있으면 이름에 검색어가 포함된 가게만 필터링
+            queryset = queryset.filter(name__icontains=query)
+        else:
+            queryset = queryset.all()
+        return queryset
 
 # 상세 페이지
 class RestaurantListView(ListView):
