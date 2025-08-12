@@ -85,7 +85,27 @@
   <div class="row grid" id="restaurant-grid">
     {% for restaurant in restaurants %}
       <div class="col-sm-6 col-lg-4 filter-item all {{ restaurant.category }}" data-category="all">
-        <div class="box">{# ... 음식점 내용 ... #}</div>
+        <div class="box">
+         <div>
+            <div class="img-box">
+               <a href="/restaurants/{{ restaurant.id }}/">
+                    {% if restaurant.image %}
+                        <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}">
+                    {% else %}
+                        <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
+                    {% endif %}
+               </a>
+            </div>
+            <div class="detail-box">
+              <h5>
+                {{ restaurant.name }}
+              </h5>
+              <p>
+                {{ restaurant.description }}
+              </p>
+            </div>
+        </div>
+        </div>
       </div>
     {% endfor %}
     {% for code, name in categories %}
