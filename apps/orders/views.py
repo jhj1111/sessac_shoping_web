@@ -134,7 +134,8 @@ class OrderAPIView(LoginRequiredMixin, View):
 
             # 주문 성공 후, 생성된 주문의 상세 페이지로 이동할 URL을 반환
             # 이 기능을 위해 'orders:order_detail' URL 패턴이 필요합니다.
-            redirect_url = reverse('orders:order_detail', kwargs={'pk': order.pk})
+            # redirect_url = reverse('orders:order_detail', kwargs={'pk': order.pk})
+            redirect_url = reverse('mypage:mypage_orders')
             return JsonResponse({'success': True, 'redirect_url': redirect_url})
 
         except Exception as e:
