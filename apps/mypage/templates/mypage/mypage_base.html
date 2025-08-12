@@ -85,10 +85,6 @@
                 <div class="sidebar-section">
                     <h3 class="sidebar-title">MY 쇼핑혜택</h3>
                     <a href="#" class="sidebar-item">
-                        쿠폰
-                        <span class="count-badge">-{{ user_coupons|default:0 }}</span>
-                    </a>
-                    <a href="#" class="sidebar-item">
                         새싹 포인트
                         <span class="count-badge">{{ user_points|default:0 }} P</span>
                     </a>
@@ -97,7 +93,7 @@
                 <div class="sidebar-section">
                     <h3 class="sidebar-title">MY 쇼핑활동</h3>
                     <a href="#" class="sidebar-item">즐겨 찾기</a>
-                    <a href="#" class="sidebar-item">찜 리스트</a>
+                    <a href="{% url 'orders:cart_view' %}" class="sidebar-item">장바구니</a>
                     <a href="#" class="sidebar-item">작성 리뷰</a>
                 </div>
 
