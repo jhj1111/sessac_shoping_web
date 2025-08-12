@@ -5,8 +5,9 @@ app_name = 'orders'
 
 urlpatterns = [
     path('cart/', views.CartView.as_view(), name='cart_view'),
+    path('cart/delete_all/', views.CartDeleteView.as_view(), name='cart_clear'),
     path('create/', views.OrderCreateView.as_view(), name='order_create'),
-    path('api/create/', views.OrderAPIView.as_view(), name='order_api_create'), # API 뷰 URL 추가
+    path('api/create/', views.OrderAPIView.as_view(), name='order_create_api'), # API 뷰 URL 추가
 
     # path('<int:pk>/', views.OrderDetailView.as_view(), name='order_detail'),
     # path('<int:pk>/status/', views.OrderStatusView.as_view(), name='order_status'),

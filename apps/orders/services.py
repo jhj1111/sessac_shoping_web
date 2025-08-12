@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 
 class OrderService:
     @staticmethod
-    def create_order(user, cart, address, payment_method, special_requests):
+    def create_order(user, cart, address='', payment_method='card', special_requests=''):
         """
         장바구니 정보를 기반으로 주문을 생성합니다.
         """
@@ -16,14 +16,16 @@ class OrderService:
         # 2. 배달비 계산
         # delivery_fee = OrderService.calculate_delivery_fee(address)
         
+        print('3. Order 객체 생성')
         # 3. Order 객체 생성
         order = Order.objects.create(
             user=user,
             # delivery_fee=delivery_fee,
-            special_requests=special_requests,
+            # special_requests=special_requests,
             payment_method=payment_method
         )
         
+        print('4. CartItem -> OrderItem으로 복사')
         # 4. CartItem -> OrderItem으로 복사
         for cart_item in cart.items.all():
             OrderItem.objects.create(
@@ -35,12 +37,15 @@ class OrderService:
                 selected_options=cart_item.selected_options
             )
         
+        print('5. 최종 금액 계산')
         # 5. 최종 금액 계산
         order.calculate_total()
         
+        print('6. 결제 처리')
         # 6. 결제 처리
         OrderService.process_payment(order)
         
+        print('7. 장바구니 비우기')
         # 7. 장바구니 비우기
         cart.clear()
         
@@ -73,36 +78,59 @@ class CartService:
         pass
 
     @staticmethod
-    def create_order_from_cart_data(user, restaurant_pk, cart_items):
+    def create_order_from_cart_data(user, restaurant_pk, cart_items, cart2order=None):
+        print('create cart data start')
         restaurant = get_object_or_404(Restaurant, pk=restaurant_pk)
+        print(f'restaurant : {restaurant}')
         total_price = 0
         menus = []
 
+        # 사용자의 기존 장바구니를 가져오거나 새로 생성합니다.
+        cart, created = Cart.objects.get_or_create(user=user)
+        print(f"Cart {'created' if created else 'retrieved'}: {cart}")
+
+        # 기존 장바구니의 내용을 비울 수 있습니다 (선택적). 
+        # 만약 레스토랑이 달라지거나, 새로운 주문을 시작할 때 장바구니를 초기화하고 싶다면 다음 줄의 주석을 해제하세요.
+        # cart.items.all().delete()
+
         for item_data in cart_items:
+            print(f'item_data : {item_data}')
             menu = get_object_or_404(Menu, pk=item_data['menu_id'])
+            print(f'menu : {menu}')
             quantity = item_data['quantity']
             total_price += menu.price * quantity
+            
             menus.append({'menu': menu, 'quantity': quantity, 'price': menu.price})
-
-        # 기본 주소를 사용하거나, 주소 선택 로직 필요
-        address = user.addresses.first()
-        if not address:
-            raise Exception("주소 정보가 없습니다. 마이페이지에서 주소를 등록해주세요.")
-
-        order = Order.objects.create(
-            user=user,
-            restaurant=restaurant,
-            address=address.address, # 주소 모델의 address 필드 사용
-            total_price=total_price,
-            payment_method='CARD' # 기본값 설정 또는 사용자 선택
-        )
-
-        for menu_data in menus:
-            OrderItem.objects.create(
-                order=order,
-                menu=menu_data['menu'],
-                quantity=menu_data['quantity'],
-                price=menu_data['price']
+            
+            # 각 메뉴를 장바구니에 추가합니다.
+            cart.add_item(
+                menu=menu,
+                quantity=quantity,
+                options={},
             )
-        
-        return order
+        print('succeed cart')
+
+        if cart2order :
+            # 기본 주소를 사용하거나, 주소 선택 로직 필요
+            address = user.addresses.first()
+            if not address:
+                raise Exception("주소 정보가 없습니다. 마이페이지에서 주소를 등록해주세요.")
+
+            order = Order.objects.create(
+                user=user,
+                restaurant=restaurant,
+                address=address.address, # 주소 모델의 address 필드 사용
+                total_price=total_price,
+                payment_method='CARD' # 기본값 설정 또는 사용자 선택
+            )
+
+            for menu_data in menus:
+                OrderItem.objects.create(
+                    order=order,
+                    menu=menu_data['menu'],
+                    quantity=menu_data['quantity'],
+                    price=menu_data['price']
+                )
+            
+            return order
+        return cart

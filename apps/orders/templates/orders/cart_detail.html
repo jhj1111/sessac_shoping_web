@@ -1,0 +1,165 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load humanize %} 
+
+{% block title %}장바구니{% endblock %}
+
+{% block food_section %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>🛒 장바구니</h1>
+        {% if cart and not cart.is_empty %}
+            <form action="{% url 'orders:cart_clear' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">장바구니 전체 비우기</button>
+            </form>
+        {% endif %}
+    </div>
+
+    {% if cart and not cart.is_empty %}
+        <div class="row">
+            <!-- 장바구니 아이템 목록 -->
+            <div class="col-lg-8">
+                {% for restaurant, data in grouped_items.items %}
+                <div class="card mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">
+                            <a href="{% url 'restaurants:restaurant_detail' restaurant.pk %}" class="text-decoration-none text-dark">
+                                {{ restaurant.name }}
+                            </a>
+                        </h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for item in data.items %}
+                        <li class="list-group-item px-3">
+                            <div class="row align-items-center">
+                                <div class="col-2 col-md-2">
+                                    <img src="{% if item.menu.image %}{{ item.menu.image.url }}{% else %}{% static 'no_image.jpg' %}{% endif %}" class="img-fluid rounded" alt="{{ item.menu.name }}">
+                                </div>
+                                <div class="col-5 col-md-4">
+                                    <h6 class="mb-0">{{ item.menu.name }}</h6>
+                                    <small class="text-muted">{{ item.menu.price|floatformat:"0"|intcomma }}원</small>
+                                </div>
+                                {% comment %} <div class="col-5 col-md-4">
+                                    <form action="{% url 'orders:cart_item_update' item.pk %}" method="post" class="d-flex align-items-center">
+                                        {% csrf_token %}
+                                        <input type="number" name="quantity" class="form-control form-control-sm" value="{{ item.quantity }}" min="1" style="width: 60px;">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary ms-2">변경</button>
+                                        <a href="{% url 'orders:cart_item_delete' item.pk %}" class="btn btn-sm btn-outline-danger ms-1">삭제</a>
+                                    </form>
+                                </div> {% endcomment %}
+                                <div class="col-12 col-md-2 text-md-end mt-2 mt-md-0">
+                                    <span class="fw-bold">{{ item.get_item_total|floatformat:"0"|intcomma }}원</span>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="card-footer text-end bg-light fw-bold">
+                        {{ restaurant.name }} 소계: {{ data.total|floatformat:"0"|intcomma }}원
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 주문 요약 -->
+            <div class="col-lg-4">
+                <div class="card sticky-top shadow-sm" style="top: 2rem;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">최종 결제 금액</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
+                                총 상품 금액
+                                <span>{{ cart.get_total_price|floatformat:"0"|intcomma }}원</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                배달비
+                                <span class="text-muted">(주문 시 결정)</span>
+                            </li>
+                            <hr class="my-2">
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 fw-bold fs-5">
+                                <div>총 주문 금액</div>
+                                <span>{{ cart.get_total_price|floatformat:"0"|intcomma }}원</span>
+                            </li>
+                        </ul>
+                        <div class="d-grid mt-3">
+                            <button id="order-now-btn" class="btn btn-primary btn-lg">주문하기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="card-body">
+                <h5 class="card-title">텅!</h5>
+                <p class="card-text">장바구니가 비어 있습니다. 맛있는 음식을 담아보세요.</p>
+                <a href="{% url 'restaurants:post-list' %}" class="btn btn-primary">레스토랑 보러가기</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const orderBtn = document.getElementById('order-now-btn');
+    if (orderBtn) {
+        orderBtn.addEventListener('click', function() {
+            orderBtn.disabled = true;
+            orderBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 주문 처리 중...';
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+
+            const orderCreateUrl = "{% url 'orders:order_create_api' %}";
+
+            fetch(orderCreateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // 서버가 4xx, 5xx 상태 코드를 반환했을 때 에러로 처리
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('주문이 성공적으로 완료되었습니다.');
+                    window.location.href = data.redirect_url;
+                } else {
+                    // 이 경우는 success: false를 명시적으로 반환한 경우
+                    throw new Error(data.error || '알 수 없는 오류가 발생했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const errorMessage = error.error || error.message || '주문 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+                alert('주문 실패: ' + errorMessage);
+                orderBtn.disabled = false;
+                orderBtn.textContent = '주문하기';
+            });
+        });
+    }
+});
+</script>
+{% endblock food_section %}
