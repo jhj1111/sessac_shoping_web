@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 
-from .models import Restaurant, Menu
+from .models import Restaurant, Menu, MenuCategory
 from apps.orders.models import Order, OrderItem
 from .forms import ReviewForm
 # 'accounts' 앱의 Address 모델을 가져옵니다. 앱 구조에 맞게 수정이 필요할 수 있습니다.
@@ -81,6 +81,11 @@ class RestaurantDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        restaurant = get_object_or_404(Restaurant, pk=self.kwargs['pk'])
+        menu_categories = MenuCategory.objects.filter(restaurant=restaurant).prefetch_related('menus')
+        
+        context['menu_categories'] = menu_categories
+        context['restaurant'] = restaurant
         # 리뷰 작성 폼을 컨텍스트에 추가
         context['review_form'] = ReviewForm()
         # 해당 가게의 리뷰 목록을 컨텍스트에 추가

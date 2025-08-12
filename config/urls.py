@@ -28,6 +28,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('',include('apps.restaurants.urls')),
     path("restaurants/", include("apps.restaurants.urls")),
+    path("orders/", include("apps.orders.urls")),
 
     path('mypage/',include('apps.mypage.urls'))
 ]
