@@ -161,6 +161,33 @@
     <!-- end offer section -->
     {% endblock %}
 
+    {% block categories-nav %}
+      <div class="container my-4">
+          <div class="row justify-content-center">
+            <div class="col-md-6">
+              <form method="get" class="input-group">
+                <input type="text"
+                        name="q"
+                        class="form-control"
+                        placeholder="가게 검색어를 입력하세요."
+                        value="{{ query }}">
+                <button type="submit" class="btn btn-dark">검색</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+
+      <ul class="filters_menu">
+        <li class="active" data-filter="*">전체</li>
+        <li data-filter=".korea">한식</li>
+        <li data-filter=".china">중식</li>
+        <li data-filter=".japan">일식</li>
+        <li data-filter=".usa">양식</li>
+        <li data-filter=".dessert">디저트</li>
+      </ul>
+    {% endblock categories-nav %}
+
     <!-- food section -->
     {% block food_section %}
         <div class="filters-content">
@@ -171,7 +198,7 @@
               <div>
                 <div class="img-box">
                     {% if restaurant.image %}
-                    <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}">
+                    <a href="/restaurants/{{ restaurant.id }}/"><img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}"></a>
                     {% else %}
                     <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
                     {% endif %}
