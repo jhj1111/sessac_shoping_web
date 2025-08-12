@@ -5,17 +5,18 @@ app_name = 'orders'
 
 urlpatterns = [
     path('cart/', views.CartView.as_view(), name='cart_view'),
+    path('cart/delete_all/', views.CartDeleteView.as_view(), name='cart_clear'),
     path('create/', views.OrderCreateView.as_view(), name='order_create'),
     path('api/create/', views.OrderAPIView.as_view(), name='order_api_create'), # API 뷰 URL 추가
     # 메뉴 목록 (레스토랑별)
     path('menu/<int:restaurant_pk>/', views.MenuListView.as_view(), name='menu_list'),
 
     # 새로 추가할 장바구니 API URLs
-    path('api/cart/add/', views.CartAddAPIView.as_view(), name='cart_add_api'),
-    path('api/cart/update/', views.CartUpdateAPIView.as_view(), name='cart_update_api'),
-    path('api/cart/remove/', views.CartRemoveAPIView.as_view(), name='cart_remove_api'),
-    path('api/cart/data/', views.CartDataAPIView.as_view(), name='cart_data_api'),
-    path('api/cart/clear/', views.CartClearAPIView.as_view(), name='cart_clear_api'),
+    # path('api/cart/add/', views.CartAddAPIView.as_view(), name='cart_add_api'),
+    # path('api/cart/update/', views.CartUpdateAPIView.as_view(), name='cart_update_api'),
+    # path('api/cart/remove/', views.CartRemoveAPIView.as_view(), name='cart_remove_api'),
+    # path('api/cart/data/', views.CartDataAPIView.as_view(), name='cart_data_api'),
+    # path('api/cart/clear/', views.CartClearAPIView.as_view(), name='cart_clear_api'),
 
 
     # path('<int:pk>/', views.OrderDetailView.as_view(), name='order_detail'),

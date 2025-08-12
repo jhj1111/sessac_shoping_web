@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import View, CreateView, DetailView, UpdateView
+from django.views.generic import View, CreateView, DetailView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from django.http import JsonResponse # Import JsonResponse
+from django.views.decorators.csrf import csrf_exempt # For AJAX POST without CSRF token (for testing, not recommended for production)
+from django.utils.decorators import method_decorator # To apply csrf_exempt to CBV
+from django.urls import reverse
 
+import json
 from .models import Cart, Order
 from .services import OrderService, CartService
 from ..restaurants.models import Menu
@@ -18,26 +20,70 @@ class CartView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         cart, created = Cart.objects.get_or_create(user=request.user)
-        cart_items = cart.items.all()
-        cart_total = sum(item.total_price for item in cart_items)
-        cart_count = sum(item.quantity for item in cart_items)
-
+        # 가게별로 아이템을 그룹화하고 소계를 계산하는 로직을 추가합니다.
         context = {
             'cart': cart,
-            'cart_items': cart_items,
-            'cart_total': cart_total,
-            'cart_count': cart_count,
+            'grouped_items': cart.group_items_by_restaurant(),
         }
         return render(request, self.template_name, context)
+
+        # context = {
+        #     'cart': cart,
+        #     'cart_items': cart_items,
+        #     'cart_total': cart_total,
+        #     'cart_count': cart_count,
+        # }
+        # return render(request, self.template_name, context)
     def post(self, request, *args, **kwargs):
-        cart = get_object_or_404(Cart, user=request.user)
-        menu_id = request.POST.get('menu_id')
-        quantity = int(request.POST.get('quantity', 1))
-        options = {} # request.POST.get('options')
+        # 로그인하지 않은 사용자에 대한 추가 방어
+        print('OrderAPIView start')
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'error': '로그인이 필요합니다.'}, status=401)
+
+        try:
+            print('try loads data')
+            data = json.loads(request.body)
+            print('loaded data')
+            cart_items = data.get('cart_items', [])
+            print(f'cart_items : {cart_items}')
+            restaurant_pk = data.get('restaurant_pk')
+
+            if not cart_items or not restaurant_pk:
+                return JsonResponse({'success': False, 'error': '잘못된 요청입니다.'}, status=400)
+
+            cart = CartService.create_order_from_cart_data(
+                user=request.user,
+                restaurant_pk=restaurant_pk,
+                cart_items=cart_items,
+                )
+
+            print('succeded create order')
+
+            # 성공 응답 반환
+            # mypage_orders.html을 사용한다고 가정
+            redirect_url = reverse('orders:cart_view') # 주문 상세 페이지 URL로 변경 가능
+            return JsonResponse({'success': True, 'redirect_url': redirect_url})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': '잘못된 형식의 요청입니다.'}, status=400)
+        except Exception as e:
+            # 기타 예외 처리
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
         
-        menu = get_object_or_404(Menu, id=menu_id)
-        cart.add_item(menu=menu, quantity=quantity, options=options)
-        return redirect('orders:cart_view')
+        return redirect('/mypage/')
+    
+    
+        
+
+class CartDeleteView(LoginRequiredMixin, DeleteView):
+    model = Cart
+    # success_url = reverse('orders:cart_view')
+    
+    def post(self, request, *args, **kwargs):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart.clear()
+        return redirect(reverse('mypage:mypage_main'))
 
 
 class OrderCreateView(LoginRequiredMixin, CreateView):
@@ -75,43 +121,32 @@ class OrderCreateView(LoginRequiredMixin, CreateView):
         return redirect(self.get_success_url())
 
 
-import json
-from django.urls import reverse
 
 class OrderAPIView(LoginRequiredMixin, View):
     """
-    AJAX 요청을 처리하여 주문을 생성하는 API 뷰
+    AJAX 요청을 처리하여 서버의 장바구니로부터 주문을 생성하는 API 뷰
     """
     def post(self, request, *args, **kwargs):
-        # 로그인하지 않은 사용자에 대한 추가 방어
-        if not request.user.is_authenticated:
-            return JsonResponse({'success': False, 'error': '로그인이 필요합니다.'}, status=401)
-
         try:
-            data = json.loads(request.body)
-            cart_items = data.get('cart_items', [])
-            restaurant_pk = data.get('restaurant_pk')
+            cart = get_object_or_404(Cart, user=request.user)
+            if cart.is_empty():
+                return JsonResponse({'success': False, 'error': '장바구니가 비어있습니다.'}, status=400)
 
-            if not cart_items or not restaurant_pk:
-                return JsonResponse({'success': False, 'error': '잘못된 요청입니다.'}, status=400)
-
-            # OrderService를 사용하여 주문 생성 로직 호출
-            # (OrderService가 cart_items를 직접 처리하도록 수정 필요)
-            order = OrderService.create_order_from_cart_data(
+            # 서비스 레이어를 통해 주문 생성
+            order = OrderService.create_order(
                 user=request.user,
-                restaurant_pk=restaurant_pk,
-                cart_items=cart_items
+                cart=cart
             )
 
-            # 성공 응답 반환
-            # mypage_orders.html을 사용한다고 가정
-            redirect_url = reverse('accounts:mypage_orders') # 주문 상세 페이지 URL로 변경 가능
+            # 주문 성공 후, 생성된 주문의 상세 페이지로 이동할 URL을 반환
+            # 이 기능을 위해 'orders:order_detail' URL 패턴이 필요합니다.
+            # redirect_url = reverse('orders:order_detail', kwargs={'pk': order.pk})
+            redirect_url = reverse('mypage:mypage_orders')
             return JsonResponse({'success': True, 'redirect_url': redirect_url})
 
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'error': '잘못된 형식의 요청입니다.'}, status=400)
         except Exception as e:
-            # 기타 예외 처리
+            # 실제 운영 환경에서는 print 대신 logging을 사용해야 합니다.
+            print(f"Order creation failed: {e}")
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 

@@ -322,7 +322,7 @@
                 return {
                     menu_id: menuId,
                     quantity: cart[menuId].quantity,
-                    options: {} // 옵션 기능 추가 시 이 부분 확장
+                    // options: {} // 옵션 기능 추가 시 이 부분 확장
                 };
             });
 
@@ -331,7 +331,7 @@
                 cart_items: cartItemsForBackend,
             };
             
-            fetch("{% url 'orders:order_api_create' %}", {
+            fetch("{% url 'orders:cart_view' %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

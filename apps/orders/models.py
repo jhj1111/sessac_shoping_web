@@ -49,6 +49,19 @@ class Cart(models.Model):
         """장바구니가 비었는지 확인합니다."""
         return not self.items.exists()
 
+    def group_items_by_restaurant(self):
+        """
+        장바구니 아이템들을 가게별로 그룹화하여 반환합니다.
+        ex) {<Restaurant A 객체>: {'items': [<CartItem 1>], 'total': 10000}, ...}
+        """
+        from collections import defaultdict
+        grouped = defaultdict(lambda: {'items': [], 'total': 0})
+        for item in self.items.all().order_by('menu__category__name'):
+            restaurant = item.menu.category.restaurant
+            grouped[restaurant]['items'].append(item)
+            grouped[restaurant]['total'] += item.get_item_total()
+        return dict(grouped) # defaultdict를 일반 dict로 변환하여 반환
+
     def __str__(self):
         return f"{self.user.username}님의 장바구니"
 
@@ -123,8 +136,29 @@ class Order(models.Model):
         grouped_items = {}
         for item in self.items.all():
             # grouped_items[item.menu.restaurant].append(item)
-            grouped_items[item.menu.restaurant] = grouped_items.get(item.menu.restaurant, []) + [item]
+            grouped_items[item.menu.category.restaurant] = grouped_items.get(item.menu.category.restaurant, []) + [item]
         return grouped_items
+    
+    def calculate_total(self):
+        """
+        주문에 포함된 모든 항목을 기반으로 최종 결제 금액을 계산하고 관련 필드를 업데이트합니다.
+        """
+        # 1. 상품 총액 계산 (각 OrderItem에 저장된 total_price 합산)
+        subtotal = sum(item.total_price for item in self.items.all())
+
+        # 2. 배달비 계산 (주문에 포함된 모든 고유한 가게들의 배달비를 합산)
+        #    - OrderItem의 'restaurant' 속성을 통해 가게 정보에 접근합니다.
+        unique_restaurants = {item.menu.category.restaurant for item in self.items.all()}
+        total_delivery_fee = sum(r.delivery_fee for r in unique_restaurants if hasattr(r, 'delivery_fee'))
+
+        # 3. 최종 결제 금액 계산
+        #    - self.discount_amount는 향후 쿠폰/프로모션 적용 시 사용될 수 있습니다.
+        final_total = subtotal + total_delivery_fee - self.discount_amount
+
+        # 4. 계산된 금액으로 모델 필드 업데이트 후 저장
+        self.total_amount = final_total
+        self.delivery_fee = total_delivery_fee
+        self.save(update_fields=['total_amount', 'delivery_fee'])
     
     
 
