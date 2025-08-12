@@ -1,13 +1,8 @@
-{% extends 'main/base.html' %}
+{% extends 'orders/mypage_base.html' %}
 {% load static %}
 {% load humanize %} 
 
-{% block main_title %}
-<div class="heading_container heading_center">
-    <br><br>
-    <h1>장바구니</h1>
-</div>
-{% endblock %}
+{% block title %}장바구니{% endblock %}
 
 {% block content %}
     
@@ -25,10 +20,11 @@
     <table style="width: 100%; border-collapse: collapse;">
         <thead>
             <tr style="border-bottom: 2px solid #ddd;">
-                <th style="padding: 12px 8px; text-align: left;">상품명</th>
-                <th style="padding: 12px 8px; text-align: center; min-width: 60px;">수량</th>
-                <th style="padding: 12px 8px; text-align: right; min-width: 100px;">단가</th>
-                <th style="padding: 12px 8px; text-align: right; min-width: 100px;">합계</th>
+                <th style="padding: 12px 8px; text-align: center;">이미지</th>
+                <th style="padding: 12px 8px; text-align: center; min-width: 60px;">상품명</th>
+                <th style="padding: 12px 8px; text-align: center; min-width: 20px;">수량</th>
+                <th style="padding: 12px 8px; text-align: center; min-width: 60px;">단가</th>
+                <th style="padding: 12px 8px; text-align: center; min-width: 60px;">합계</th>
                 <th style="padding: 12px 8px; text-align: center; min-width: 60px;">삭제</th>
             </tr>
         </thead>
@@ -40,22 +36,20 @@
                     {% for item in data.items %}                    
                         <tr style="border-bottom: 1px solid #eee;">
                         
-                        <td style="padding: 10px 8px; text-align: center;">
-                            <div class="col-2 col-md-2">
-                                <img src="{% if item.menu.image %}{{ item.menu.image.url }}{% else %}{% static 'no_image.jpg' %}{% endif %}" class="img-fluid rounded" alt="{{ item.menu.name }}">
-                            </div>
+                        <td >
+                            <img width="80" src="{% if item.menu.image %}{{ item.menu.image.url }}{% else %}{% static 'no_image.jpg' %}{% endif %}" class="img-fluid rounded" alt="{{ item.menu.name }}">
                         </td>
-                        <td style="padding: 10px 8px; text-align: center;">{{ item.menu.name }}</td>
-                        <td style="padding: 10px 8px; text-align: right;">{{ item.menu.price|floatformat:"0"|intcomma }}원</td>
-                        <td style="padding: 10px 8px; text-align: center;">
-                        <form action="" method="post" class="d-flex align-items-center">
+                        <td style="padding: 30px 10px; text-align: center;">{{ item.menu.name }}</td>
+                        <td style="padding-left: 60px; text-align: right;">
+                        <form method="post" class="d-flex align-items-center cart-update-form" data-item-id="{{ item.id }}">
                             {% csrf_token %}
-                            <input type="number" name="quantity" class="form-control form-control-sm" value="{{ item.quantity }}" min="1" style="width: 60px;">
+                            <input type="number" name="quantity" class="form-control form-control-sm quantity-input" value="{{ item.quantity }}" min="1" style="width: 50px;">
                             <button type="submit" class="btn btn-sm btn-outline-secondary ms-2">변경</button>
-                            <a href="" class="btn btn-sm btn-outline-danger ms-1">삭제</a>
                         </form>
-                        <span class="fw-bold">{{ item.get_item_total|floatformat:"0"|intcomma }}원</span>
                         </td>
+                        <td style="padding: 10px 8px; text-align: center;">{{ item.menu.price|floatformat:"0"|intcomma }}원</td>
+                        <td style="padding: 10px 8px; text-align: center;" class="fw-bold">{{ item.get_item_total|floatformat:"0"|intcomma }}원</td>
+                        <td style="padding: 10px 8px; text-align: center;"><button type="button" class="btn btn-sm btn-outline-danger ms-1 cart-remove-btn" data-item-id="{{ item.id }}">삭제</button></td>
                         </tr>
                     {% endfor %}
                 <div class="card-footer text-end bg-light fw-bold">
@@ -88,7 +82,7 @@
                 </button>
             </form>
 
-            <a href="{% url 'orders:order_api_create' %}" style="
+            <a id="order-now-btn" style="
                 padding: 0.6rem 1.2rem;
                 background:#2563eb;
                 color:white;
@@ -100,11 +94,136 @@
                 cursor: pointer;
                 transition: background-color 0.3s ease;
             " onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#2563eb'">
-                <i class="fas fa-credit-card" style="margin-right: 0.5rem;"></i> 결제하기
+                <i class="fas fa-credit-card" style="margin-right: 0.5rem;">결제하기</i> 
             </a>
         </div>
     </div>
-
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const orderBtn = document.getElementById('order-now-btn');
+    if (orderBtn) {
+        orderBtn.addEventListener('click', function() {
+            orderBtn.disabled = true;
+            orderBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 주문 처리 중...';
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+
+            const orderCreateUrl = "{% url 'orders:order_api_create' %}";
+
+            fetch(orderCreateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // 서버가 4xx, 5xx 상태 코드를 반환했을 때 에러로 처리
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('주문이 성공적으로 완료되었습니다.');
+                    window.location.href = data.redirect_url;
+                } else {
+                    // 이 경우는 success: false를 명시적으로 반환한 경우
+                    throw new Error(data.error || '알 수 없는 오류가 발생했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const errorMessage = error.error || error.message || '주문 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+                alert('주문 실패: ' + errorMessage);
+                orderBtn.disabled = false;
+                orderBtn.textContent = '주문하기';
+            });
+        });
+    }
+
+    // Handle quantity update
+    document.querySelectorAll('.cart-update-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const itemId = this.dataset.itemId;
+            const quantity = this.querySelector('.quantity-input').value;
+            const updateUrl = "{% url 'orders:cart_update_api' %}";
+
+            fetch(updateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `cart_item_id=${itemId}&quantity=${quantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('오류: ' + (data.message || '수량 변경에 실패했습니다.'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('수량 변경 중 오류가 발생했습니다.');
+            });
+        });
+    });
+
+    // Handle item removal
+    document.querySelectorAll('.cart-remove-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!confirm('이 상품을 장바구니에서 삭제하시겠습니까?')) {
+                return;
+            }
+            const itemId = this.dataset.itemId;
+            const removeUrl = "{% url 'orders:cart_remove_api' %}";
+
+            fetch(removeUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `cart_item_id=${itemId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('오류: ' + (data.message || '삭제에 실패했습니다.'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            });
+        });
+    });
+});
+</script>
 
 {% endblock %}

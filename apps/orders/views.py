@@ -12,6 +12,26 @@ from .models import Cart, Order
 from .services import OrderService, CartService
 from ..restaurants.models import Menu
 
+class OrderCancelAPIView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        try:
+            order_id = kwargs.get('order_id')
+            order = get_object_or_404(Order, id=order_id, user=request.user)
+
+            if order.status != '주문 대기':
+                return JsonResponse({'success': False, 'message': '주문 대기 상태에서만 취소가 가능합니다.'})
+
+            order.status = '주문 취소'
+            order.save()
+
+            return JsonResponse({'success': True, 'message': '주문이 성공적으로 취소되었습니다.'})
+
+        except Order.DoesNotExist:
+            return JsonResponse({'success': False, 'message': '주문을 찾을 수 없습니다.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
 class CartView(LoginRequiredMixin, View):
     """
     장바구니 조회(GET) 및 아이템 추가(POST) 처리
@@ -83,7 +103,8 @@ class CartDeleteView(LoginRequiredMixin, DeleteView):
     def post(self, request, *args, **kwargs):
         cart, created = Cart.objects.get_or_create(user=request.user)
         cart.clear()
-        return redirect(reverse('mypage:mypage_main'))
+        # return redirect(reverse('mypage:mypage_main'))
+        return redirect(reverse('orders:cart_view'))
 
 
 class OrderCreateView(LoginRequiredMixin, CreateView):
@@ -215,7 +236,7 @@ class CartUpdateAPIView(LoginRequiredMixin, View):
 
             # 업데이트된 장바구니 정보
             cart_items = cart.items.all()
-            cart_total = sum(item.total_price for item in cart_items)
+            cart_total = sum(item.get_item_total() for item in cart_items)
             cart_count = sum(item.quantity for item in cart_items)
 
             return JsonResponse({
@@ -251,15 +272,16 @@ class CartRemoveAPIView(LoginRequiredMixin, View):
 
             # 업데이트된 장바구니 정보
             cart_items = cart.items.all()
-            cart_total = sum(item.total_price for item in cart_items)
+            cart_total = sum(item.get_item_total() for item in cart_items)
             cart_count = sum(item.quantity for item in cart_items)
 
-            return JsonResponse({
-                'success': True,
-                'message': f'{item_name}이(가) 장바구니에서 제거되었습니다.',
-                'cart_count': cart_count,
-                'cart_total': float(cart_total)
-            })
+            return JsonResponse({'success': True,
+                                 'message': f'{item_name}이(가) 장바구니에서 제거되었습니다.', 
+                                 'cart_count': int(cart_count), 
+                                 'cart_total': float(cart_total)
+                                 }, 
+                                 safe=False
+                                )
 
         except Exception as e:
             return JsonResponse({
