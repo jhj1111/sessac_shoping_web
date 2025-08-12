@@ -35,5 +35,46 @@
         {% endif %}
   </ul>
 </nav>
+<style>
+  .custom_nav-container {
+    background-color: #000000 !important;
+  }
 
+  /* 메뉴 위치 조정 */
+  .custom_nav-container .navbar-nav.mx-auto {
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    transform: translateX(150px); /* 메뉴 오른쪽으로 이동 */
+  }
 
+  /* 로그인 영역 왼쪽으로 당기기 */
+  .custom_nav-container .ms-auto {
+    margin-left: 20px !important; /* 기본 오른쪽 정렬 여백 줄이기 */
+    margin-right: 0 !important;
+    transform: translateX(-110px); /* 왼쪽으로 이동 */
+  }
+
+  /* 메뉴 색상 */
+  .custom_nav-container .nav-link {
+    color: #ffffff !important;
+  }
+  .custom_nav-container .nav-link:hover {
+    color: #ffcc00 !important;
+  }
+
+  /* 로그인 텍스트 색상 */
+  .custom_nav-container p {
+    color: #ffffff !important;
+    margin: 0;
+    padding-right: 10px;
+  }
+
+  /* 로그아웃 버튼 색상 */
+  .custom_nav-container button.btn-link {
+    color: #ffffff !important;
+  }
+  .custom_nav-container button.btn-link:hover {
+    color: #ff4d4d !important;
+  }
+</style>
