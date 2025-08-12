@@ -146,7 +146,7 @@ class Menu(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'[{self.restaurant.name}] {self.name}'
+        return f'[{self.category.restaurant}] {self.name}'
 
     def get_formatted_price(self):
         # Placeholder for price formatting
