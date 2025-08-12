@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Restaurant, MenuCategory, Menu, Review, ReviewComment, Option, OptionGroup, Category
+from .models import Restaurant, MenuCategory, Menu, Review, ReviewComment, Option, OptionGroup
 
 # Register your models here.
 

@@ -21,6 +21,7 @@ urlpatterns = [
     # 주문 상세 정보
     # /restaurants/orders/1/
     path('orders/<int:pk>/', views.OrderDetailView.as_view(), name='order_detail'),
+    path('review/<int:review_pk>/comment/', views.comment_create, name='comment_create'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -69,7 +69,8 @@ class Review(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.restaurant.name} 리뷰: {self.user.username} ({self.rating})'
+        return (f'{self.restaurant.name} ')
+                # f'리뷰: {self.user.username} ({self.rating})')
 
     @property
     def operating_status(self):
@@ -107,8 +108,8 @@ class Review(models.Model):
         self.average_rating = reviews.aggregate(avg=models.Avg('rating'))['avg'] or 0.0
         self.save(update_fields=['review_count', 'average_rating'])
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
