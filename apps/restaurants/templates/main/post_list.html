@@ -1,359 +1,227 @@
 {% extends 'main/base.html' %}
 {% load static %}
-    {% block title %}
-        <title>sesac_web_main</title>
-    {% endblock %}
 
- <!-- 배너 영역 -->
-    {% block banner %}
-    <div class="hero_area">
-    <div class="bg-box">
-      <!--<img src="images/hero-bg.jpg" alt="">  여긴 뒤에 배경으로 깔리는거고 -->
-    </div>
-    <!-- header section strats -->
-    <header class="header_section">
-      <div class="container">
+{% block title %}
+    <title>sesac_web_main</title>
+{% endblock %}
 
-      </div>
-    </header>
-    <!-- end header section -->
-    <!-- slider section  상단 베너 이미지로 넣고 쓰면 됨 -->
-    <section class="slider_section ">
-      <div id="customCarousel1" class="carousel slide" data-ride="carousel">
-        <div class="carousel-inner">
-          <div class="carousel-item active">
-            <div class="bg-box">
-               <img src="{% static 'images/about-img.png' %} " alt="배너1 배경">
-            </div>
-            <div class="container ">
-              <div class="row">
-                <div class="col-md-7 col-lg-6 ">
-                  <div class="detail-box">
-                    <h1>
-                      1번 베너 영역
-                    </h1>
-                    <p>
-                     1번 베너 내용
-                    </p>
-                    <div class="btn-box">
-                      <a href="장바구니 페이지로 이동" class="btn1">
-                        Order Now
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="carousel-item ">
-            <div class="bg-box">
-               <img src="{% static 'images/about-img.png' %} " alt="배너1 배경">
-            </div>
-            <div class="container ">
-              <div class="row">
-                <div class="col-md-7 col-lg-6 ">
-                  <div class="detail-box">
-                    <h1>
-                      2번 베너 영역
-                    </h1>
-                    <p>
-                      2번 베너 내용
-                    </p>
-                    <div class="btn-box">
-                      <a href="장바구니 페이지로 이동 " class="btn1">
-                        Order Now
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="bg-box">
-               <img src="이미지 배경 " alt="배너1 배경">
-            </div>
-            <div class="container ">
-              <div class="row">
-                <div class="col-md-7 col-lg-6 ">
-                  <div class="detail-box">
-                    <h1>
-                      3번 베너 영역
-                    </h1>
-                    <p>
-                      3번 베너 내용
-                    </p>
-                    <div class="btn-box">
-                      <a href="장바구니 페이지로 이동" class="btn1">
-                        Order Now
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="container">
-          <ol class="carousel-indicators">
-            <li data-target="#customCarousel1" data-slide-to="0" class="active"></li>
-            <li data-target="#customCarousel1" data-slide-to="1"></li>
-            <li data-target="#customCarousel1" data-slide-to="2"></li>
-          </ol>
-        </div>
-      </div>
+{# ▼▼▼ 페이지의 모든 컨텐츠를 이 블록 안에 넣어야 합니다. ▼▼▼ #}
+{% block content %}
 
-    </section>
-    <!-- end slider section -->
+<div class="hero_area">
+  <div class="bg-box">
+    <img src="{% static 'images/hero-bg.jpg' %}" alt="">
   </div>
-    {% endblock %}
+  <header class="header_section">
+    <div class="container">
 
-
-<!-- 인기 음식점 -->
-    {% block popular_restaurants %}
-       <!-- offer section -->
-      <section class="offer_section layout_padding-bottom">
-        <div class="offer_container">
+    </div>
+  </header>
+  <section class="slider_section ">
+    <div id="customCarousel1" class="carousel slide" data-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <div class="bg-box">
+             <img src="{% static 'images/about-img.png' %}" alt="배너1 배경">
+          </div>
           <div class="container ">
             <div class="row">
-              <div class="col-md-6  ">
-                <div class="box ">
-                  <div class="img-box">
-                    <img src="이미지 추가" alt="">
-                  </div>
-                  <div class="detail-box">
-                    <h5>
-                      추천 인기 음식점
-                    </h5>
-                    <h6>
-                      <span>추천 음식</span> hot
-                    </h6>
-                    <a href="">
-                      Order Now <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">
-                       </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6  ">
-                <div class="box ">
-                  <div class="img-box">
-                    <img src="{% static 'images/about-img.png' %} " alt=""> <!--이미지 -->
-                  </div>
-                  <div class="detail-box">
-                    <h5>
-                      추천 인기 음식점
-                    </h5>
-                    <h6>
-                      <span>추천 음식</span> hot
-                    </h6>
-                    <a href="">
-                      Order Now <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    <!-- end offer section -->
-    {% endblock %}
-
-    {% block categories-nav %}
-      <div class="container my-4">
-          <div class="row justify-content-center">
-            <div class="col-md-6">
-              <form method="get" class="input-group">
-                <input type="text"
-                        name="q"
-                        class="form-control"
-                        placeholder="가게 검색어를 입력하세요."
-                        value="{{ query }}">
-                <button type="submit" class="btn btn-dark">검색</button>
-              </form>
-            </div>
-          </div>
-        </div>
-
-
-      <ul class="filters_menu">
-        <li class="active" data-filter="*">전체</li>
-        <li data-filter=".korea">한식</li>
-        <li data-filter=".china">중식</li>
-        <li data-filter=".japan">일식</li>
-        <li data-filter=".usa">양식</li>
-        <li data-filter=".dessert">디저트</li>
-      </ul>
-    {% endblock categories-nav %}
-
-    <!-- food section -->
-    {% block food_section %}
-        <div class="filters-content">
-        <div class="row grid">
-        {% for restaurant in restaurants %}
-          <div class="col-sm-6 col-lg-4 all">  <!-- dessert는 디저트 항목 -->
-            <div class="box">
-              <div>
-                <div class="img-box">
-                    {% if restaurant.image %}
-                    <a href="/restaurants/{{ restaurant.id }}/"><img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}"></a>
-                    {% else %}
-                    <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
-                    {% endif %}
-                </div>
+              <div class="col-md-7 col-lg-6 ">
                 <div class="detail-box">
-                  <h5>
-                    {{ restaurant.name }}
-                  </h5>
+                  <h1>
+                    1번 베너 영역
+                  </h1>
                   <p>
-                    {{ restaurant.description }}
+                   1번 베너 내용
                   </p>
+                  <div class="btn-box">
+                    <a href="#" class="btn1">
+                      Order Now
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        {% endfor %}
-{#          <div class="col-sm-6 col-lg-4 all japan">#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명 2#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    2#}
-{#                  </p>#}
-{#                  <!--#}
-{#                  <div class="options">#}
-{##}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#          <div class="col-sm-6 col-lg-4 all korea">#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명 3#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    3#}
-{#                  </p>#}
-{#                  <!--#}
-{#                  <div class="options">#}
-{##}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#          <div class="col-sm-6 col-lg-4 all usa">  <!-- dessert는 디저트 항목 -->#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명4#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    가게 파는거 설명1#}
-{#                  </p>#}
-{#                  <!-- 버튼 없애는거#}
-{#                  <div class="options">#}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#          <div class="col-sm-6 col-lg-4 all china">#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명 5#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    2#}
-{#                  </p>#}
-{#                  <!--#}
-{#                  <div class="options">#}
-{##}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#          <div class="col-sm-6 col-lg-4 all usa">#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명 6#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    3#}
-{#                  </p>#}
-{#                  <!--#}
-{#                  <div class="options">#}
-{##}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
         </div>
-      </div>  <!-- grid-->
-      <div class="btn-box">
-        <a href="{% url 'restaurants:main-detail' %}">
-          View More
-        </a>
+        <div class="carousel-item ">
+          <div class="bg-box">
+             <img src="{% static 'images/about-img.png' %}" alt="배너2 배경">
+          </div>
+          <div class="container ">
+            <div class="row">
+              <div class="col-md-7 col-lg-6 ">
+                <div class="detail-box">
+                  <h1>
+                    2번 베너 영역
+                  </h1>
+                  <p>
+                    2번 베너 내용
+                  </p>
+                  <div class="btn-box">
+                    <a href="#" class="btn1">
+                      Order Now
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <div class="bg-box">
+             <img src="{% static 'images/about-img.png' %}" alt="배너3 배경">
+          </div>
+          <div class="container ">
+            <div class="row">
+              <div class="col-md-7 col-lg-6 ">
+                <div class="detail-box">
+                  <h1>
+                    3번 베너 영역
+                  </h1>
+                  <p>
+                    3번 베너 내용
+                  </p>
+                  <div class="btn-box">
+                    <a href="#" class="btn1">
+                      Order Now
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    {% endblock %}
+      <div class="container">
+        <ol class="carousel-indicators">
+          <li data-target="#customCarousel1" data-slide-to="0" class="active"></li>
+          <li data-target="#customCarousel1" data-slide-to="1"></li>
+          <li data-target="#customCarousel1" data-slide-to="2"></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  </div>
+
+<section class="offer_section layout_padding-bottom">
+  <div class="offer_container">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div id="map" style="width:100%; height:450px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="food_section layout_padding-bottom">
+  <div class="container">
+    <div class="container my-4">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <form method="get" class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="가게 검색어를 입력하세요." value="{{ query }}">
+            <button type="submit" class="btn btn-dark">검색</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <ul class="filters_menu">
+      <li class="active" data-filter="*">전체</li>
+      <li data-filter=".korea">한식</li>
+      <li data-filter=".china">중식</li>
+      <li data-filter=".japan">일식</li>
+      <li data-filter=".usa">양식</li>
+      <li data-filter=".dessert">디저트</li>
+    </ul>
+
+    <div class="filters-content">
+      <div class="row grid">
+        {% for restaurant in restaurants %}
+        <div class="col-sm-6 col-lg-4 all">
+          <div class="box">
+            <div>
+              <div class="img-box">
+                {% if restaurant.image %}
+                <a href="/restaurants/{{ restaurant.id }}/"><img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}"></a>
+                {% else %}
+                <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
+                {% endif %}
+              </div>
+              <div class="detail-box">
+                <h5>{{ restaurant.name }}</h5>
+                <p>{{ restaurant.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="btn-box">
+      <a href="{% url 'restaurants:main-detail' %}">View More</a>
+    </div>
+  </div>
+</section>
+
+{# Django 변수를 JavaScript에서 사용하기 위한 숨겨진 div들 #}
+{{ user_address|json_script:"user-address" }}
+{{ restaurants_data|json_script:"restaurants-data" }}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const mapContainer = document.getElementById('map');
+        const mapOption = {
+            center: new kakao.maps.LatLng(37.566826, 126.978657),
+            level: 7
+        };
+        const map = new kakao.maps.Map(mapContainer, mapOption);
+        const geocoder = new kakao.maps.services.Geocoder();
+        const bounds = new kakao.maps.LatLngBounds();
+
+        // --- ▼▼▼ 데이터 가져오는 방식 수정 ▼▼▼ ---
+        const userAddress = JSON.parse(document.getElementById('user-address').textContent);
+        const restaurants = JSON.parse(document.getElementById('restaurants-data').textContent);
+        // --- ▲▲▲ 데이터 가져오는 방식 수정 ▲▲▲ ---
+
+        // "등록된 주소" 표시
+        if (userAddress) {
+            geocoder.addressSearch(userAddress, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                    new kakao.maps.Marker({ map: map, position: coords, title: '내 등록 주소' });
+                    bounds.extend(coords);
+                    map.setBounds(bounds);
+                }
+            });
+        }
+
+        // "모든 음식점" 표시
+        function geocodeRestaurants(index) {
+            if (index >= restaurants.length) {
+                map.setBounds(bounds);
+                return;
+            }
+            const restaurant = restaurants[index];
+            // --- ▼▼▼ 데이터 접근 방식 수정 (.fields 제거) ▼▼▼ ---
+            const address = restaurant.address;
+            const name = restaurant.name;
+            // --- ▲▲▲ 데이터 접근 방식 수정 ▲▲▲ ---
+
+            geocoder.addressSearch(address, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                    new kakao.maps.Marker({ map: map, position: coords, title: name });
+                    bounds.extend(coords);
+                }
+                setTimeout(() => geocodeRestaurants(index + 1), 100);
+            });
+        }
+        geocodeRestaurants(0);
+    });
+</script>
+
+{% endblock content %}

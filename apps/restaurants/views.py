@@ -1,5 +1,6 @@
 import json
 from urllib import request
+from django.core.serializers import serialize # Django의 시리얼라이저를 추가합니다.
 
 from django.utils import timezone
 
@@ -26,7 +27,6 @@ def post_list(request):
     return render(request, template_name='main/base.html')
 
 
-
 class PostListView(ListView):
     model = Post
     template_name = 'main/post_list.html'
@@ -34,12 +34,19 @@ class PostListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # request 객체는 self.request 로 접근해야 합니다.
         user = self.request.user
-        restaurants = Restaurant.objects.all()
-        context['restaurants'] = restaurants
-        return context
 
+        user_address = ""
+
+        if user.is_authenticated:
+           user_address =user.address
+
+
+        context['user_address'] = user_address
+        context['restaurants'] = Restaurant.objects.all()
+        restaurants_data = list(Restaurant.objects.all().values('name', 'address'))
+        context['restaurants_data'] = restaurants_data
+        return context
 
 class MainDetailView(TemplateView):
     #model = Post
