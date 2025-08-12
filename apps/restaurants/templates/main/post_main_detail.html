@@ -20,28 +20,31 @@
 {% endblock %}
 
 {% block categories-nav %}
-  <div class="container my-4">
+    <div class="container my-4">
       <div class="row justify-content-center">
         <div class="col-md-6">
-          <form method="get" class="input-group">
-            <input type="text"
-                    name="q"
-                    class="form-control"
-                    placeholder="가게 검색어를 입력하세요."
-                    value="{{ query }}">
+          <form method="get" class="input-group" action="{% url 'restaurants:main-detail' %}">
+            <input type="text" name="q" class="form-control" placeholder="가게명을 입력하세요." value="{{ query }}">
             <button type="submit" class="btn btn-dark">검색</button>
           </form>
         </div>
       </div>
+
+      <div class="row mt-4">
+      {% if query %}
+        {% if restaurants|length == 0 %}
+          <p class="text-center mt-3">검색 결과가 없습니다.</p>
+        {% endif %}
+      {% endif %}
+      </div>
     </div>
 
-
-      <ul class="filters_menu">
-        <li class="active" data-filter="*">전체</li>
-        {% for code, name in categories %}
-          <li data-filter=".{{ code }}">{{ name }}</li>
-        {% endfor %}
-      </ul>
+  <ul class="filters_menu">
+    <li class="active" data-filter="*">전체</li>
+    {% for code, name in categories %}
+      <li data-filter=".{{ code }}">{{ name }}</li>
+    {% endfor %}
+  </ul>
 
 {% endblock categories-nav %}
 
