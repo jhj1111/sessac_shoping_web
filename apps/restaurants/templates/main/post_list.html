@@ -81,6 +81,7 @@
 {% endblock categories-nav %}
 
 {% block food_section %}
+{% include 'main/widget.html' %}
 <div class="filters-content">
   <div class="row grid" id="restaurant-grid">
     {% for restaurant in restaurants %}
@@ -124,7 +125,12 @@
 {{ user_address|json_script:"user-address" }}
 {{ restaurants_data|json_script:"restaurants-data" }}
 
+
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
 <script>
+  {% include 'js/cart_widget.js' %}
     document.addEventListener("DOMContentLoaded", function() {
         const mapContainer = document.getElementById('map');
         const mapOption = {
