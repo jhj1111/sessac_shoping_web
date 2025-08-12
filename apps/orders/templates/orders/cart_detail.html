@@ -10,12 +10,6 @@
 {% endblock %}
 
 {% block content %}
-    {% if cart and not cart.is_empty %}
-        <form action="{% url 'orders:cart_clear' %}" method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-outline-danger">장바구니 전체 비우기</button>
-        </form>
-    {% endif %}
     
 <div class="cart-container" style="
     background: white;
@@ -78,7 +72,7 @@
             총 합계: {{ cart.get_total_price|floatformat:"0"|intcomma }}원
         </div>
         <div style="display: flex; gap: 0.75rem;">
-            <form method="post" action="">
+            <form action="{% url 'orders:cart_clear' %}" method="post" action="">
                 {% csrf_token %}
                 <button type="submit" style="
                     padding: 0.6rem 1.2rem;

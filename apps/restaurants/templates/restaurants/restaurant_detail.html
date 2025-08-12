@@ -197,7 +197,7 @@
     </div>
 </div>
 
-<!-- 장바구니 (화면 하단에 고정될 수 있도록 스타일링 필요 시 추가) -->
+{% comment %} <!-- 장바구니 (화면 하단에 고정될 수 있도록 스타일링 필요 시 추가) -->
 <div class="container sticky-bottom bg-light p-3 border-top">
     <h3>🛒 장바구니</h3>
     <div id="cart-items">
@@ -208,13 +208,13 @@
         <h4>총 주문 금액: <span id="total-price">0</span>원</h4>
         <button id="order-btn" class="btn btn-success btn-lg">주문하기</button>
     </div>
-</div>
+</div> {% endcomment %}
 
 <!-- Bootstrap JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
 
-<script>
+
+{% comment %} <script>
     // Function to get CSRF token (uncomment in production)
     function getCookie(name) {
         let cookieValue = null;
@@ -360,5 +360,5 @@
             });
         });
     });
-</script>
+</script> {% endcomment %}
 {% endblock food_section %}
