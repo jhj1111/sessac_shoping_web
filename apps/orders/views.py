@@ -18,11 +18,7 @@ class CartView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         cart, created = Cart.objects.get_or_create(user=request.user)
-        context = {'cart': cart}
-        return render(request, self.template_name, context)
-
-        # 위젯용 추가 컨텍스트
-        cart_items = cart.items.all()  # Cart 모델이 items 관계를 가진다고 가정
+        cart_items = cart.items.all()
         cart_total = sum(item.total_price for item in cart_items)
         cart_count = sum(item.quantity for item in cart_items)
 
@@ -33,7 +29,6 @@ class CartView(LoginRequiredMixin, View):
             'cart_count': cart_count,
         }
         return render(request, self.template_name, context)
-
     def post(self, request, *args, **kwargs):
         cart = get_object_or_404(Cart, user=request.user)
         menu_id = request.POST.get('menu_id')
