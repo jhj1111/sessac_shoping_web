@@ -40,6 +40,23 @@ class PostListView(ListView):
         if user.is_authenticated:
             user_address = user.address
         restaurants_data = list(Restaurant.objects.all().values('name', 'address'))
+        if self.request.user.is_authenticated:
+            from apps.orders.models import Cart
+            import json
+            cart, created = Cart.objects.get_or_create(user=self.request.user)
+            context['cart'] = cart
+            cart_data_for_js = {
+                item.menu.id: {
+                    'name': item.menu.name,
+                    'price': item.menu.price,
+                    'quantity': item.quantity
+                } for item in cart.items.all()
+            }
+            context['cart_json'] = json.dumps(cart_data_for_js)
+        else:
+            context['cart'] = None
+            context['cart_json'] = '{}'
+
         context['user_address'] = user_address
         context['restaurants_data'] = restaurants_data
 
@@ -64,6 +81,23 @@ class MainDetailView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Restaurant.CATEGORY_CHOICES  # 카테고리 목록 추가
+
+        if self.request.user.is_authenticated:
+            from apps.orders.models import Cart
+            import json
+            cart, created = Cart.objects.get_or_create(user=self.request.user)
+            context['cart'] = cart
+            cart_data_for_js = {
+                item.menu.id: {
+                    'name': item.menu.name,
+                    'price': item.menu.price,
+                    'quantity': item.quantity
+                } for item in cart.items.all()
+            }
+            context['cart_json'] = json.dumps(cart_data_for_js)
+        else:
+            context['cart'] = None
+            context['cart_json'] = '{}'
         return context
     # 특정 상세 페이지가 아니라서 이렇게만 하면 이동
 
@@ -83,6 +117,25 @@ class RestaurantListView(ListView):
         # request 객체는 self.request 로 접근해야 합니다.
         user = self.request.user
         restaurants = Restaurant.objects.all()
+
+        # Cart, CartItems 데이터 불러오기
+        if self.request.user.is_authenticated:
+            from apps.orders.models import Cart
+            import json
+            cart, created = Cart.objects.get_or_create(user=self.request.user)
+            context['cart'] = cart
+            cart_data_for_js = {
+                item.menu.id: {
+                    'name': item.menu.name,
+                    'price': item.menu.price,
+                    'quantity': item.quantity
+                } for item in cart.items.all()
+            }
+            context['cart_json'] = json.dumps(cart_data_for_js)
+        else:
+            context['cart'] = None
+            context['cart_json'] = '{}'
+
         context['restaurants'] = restaurants
         return context
 
@@ -111,6 +164,24 @@ class RestaurantDetailView(DetailView):
         context['review_form'] = ReviewForm()
         # 해당 가게의 리뷰 목록을 컨텍스트에 추가
         context['reviews'] = self.object.reviews.select_related('user', 'comment').all()
+
+        if self.request.user.is_authenticated:
+            from apps.orders.models import Cart
+            import json
+            cart, created = Cart.objects.get_or_create(user=self.request.user)
+            context['cart'] = cart
+            cart_data_for_js = {
+                item.menu.id: {
+                    'name': item.menu.name,
+                    'price': item.menu.price,
+                    'quantity': item.quantity
+                } for item in cart.items.all()
+            }
+            context['cart_json'] = json.dumps(cart_data_for_js)
+        else:
+            context['cart'] = None
+            context['cart_json'] = '{}'
+
         return context
 
 

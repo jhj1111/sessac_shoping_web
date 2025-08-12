@@ -215,7 +215,7 @@
                 </div>
                 {% if order_data.order.get_status_display == '주문 대기' %}
                 <div class="card-footer text-end">
-                    <button type="button" class="btn btn-danger btn-sm cancel-order-btn" data-order-id="{{ order_data.order.id }}">주문 취소</button>
+                    <button type="button" class="btn btn-danger btn-sm cancel-order-btn" data-order-id="{{ order_data.order.id }}" data-cancel-url="{% url 'orders:order_cancel_api' order_data.order.id %}">주문 취소</button>
                 </div>
                 {% endif %}
                 <div class="card-body p-0"> {# Remove default padding to control list-group padding #}
@@ -248,5 +248,56 @@
 </div>
 
 {% include 'js/mypage-date-button-state.html' %}
+
+<script>
+    // Function to get CSRF token (uncomment in production)
+    // function getCookie(name) {
+    //     let cookieValue = null;
+    //     if (document.cookie && document.cookie !== '') {
+    //         const cookies = document.cookie.split(';');
+    //         for (let i = 0; i < cookies.length; i++) {
+    //             const cookie = cookies[i].trim();
+    //             // Does this cookie string begin with the name we want?
+    //             if (cookie.substring(0, name.length + 1) === (name + '=')) {
+    //                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     return cookieValue;
+    // }
+    // const csrftoken = getCookie('csrftoken');   
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelButtons = document.querySelectorAll('.cancel-order-btn');
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const cancelUrl = this.dataset.cancelUrl;
+                
+                    fetch(cancelUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            window.location.reload();
+                        } else {
+                            alert('오류: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('주문 취소 중 오류가 발생했습니다.');
+                    });
+                
+            });
+        });
+    });
+</script>
 
 {% endblock %}

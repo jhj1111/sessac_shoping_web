@@ -2,7 +2,8 @@
     <!-- 고정된 장바구니 위젯 위치 -->
     <div class="cart-widget" style="
         position: fixed;
-        top: 750px;
+        top: 33.33%;
+        transform: translateY(-50%);
         right: 24px;
         width: 18rem;
         background: white;
@@ -28,51 +29,45 @@
         </div>
     </div>
 
-    <script>
-        function toggleWidget() {
-            const content = document.getElementById('cart-content');
-            const icon = document.getElementById('widget-toggle-icon');
-            if (content.style.display === 'none' || content.style.display === '') {
-                content.style.display = 'block';
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
-            } else {
-                content.style.display = 'none';
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
-            }
-        }
-
-        // 페이지 로드 시 내용 숨기기 (선택사항)
-        // window.onload = function() {
-        //     const content = document.getElementById('cart-content');
-        //     if (content) {
-        //         content.style.display = 'none';
-        //     }
-        // }
-    </script>
-
     <!-- 장바구니 내용 -->
     <div id="cart-content" style="max-height: 24rem; overflow-y: auto;">
-        <div id="widget-cart-items" style="padding: 1rem;">
-            {% if cart_count|default:0 == 0 %}
-            <div style="text-align: center; color: #94a3b8; padding: 2rem 0;">
-                <i class="fas fa-shopping-cart" style="font-size: 3rem; opacity: 0.5; margin-bottom: 0.75rem;"></i>
-                <p style="font-size: 0.875rem;">장바구니가 비어있습니다</p>
-            </div>
+        <div id="cart-items" style="padding: 1rem;">
+            {% if cart and not cart.is_empty %}
+                <ul class="list-group">
+                {% for item in cart.items.all %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center" data-menu-id="{{ item.menu.id }}">
+                        <div>
+                            {{ item.menu.name }}
+                            <br>
+                            <small class="text-muted">{{ item.menu.price|floatformat:"0" }}원 x {{ item.quantity }}</small>
+                        </div>
+                        <div>
+                            <span class="fw-bold me-3">{{ item.get_item_total|floatformat:"0" }}원</span>
+                            <button class="btn btn-sm btn-outline-danger remove-from-cart-btn" data-menu-id="{{ item.menu.id }}">×</button>
+                        </div>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <div style="text-align: center; color: #94a3b8; padding: 2rem 0;">
+                    <i class="fas fa-shopping-cart" style="font-size: 3rem; opacity: 0.5; margin-bottom: 0.75rem;"></i>
+                    <p style="font-size: 0.875rem;">장바구니가 비어있습니다</p>
+                </div>
             {% endif %}
         </div>
 
        <!-- 합계 (조건 제거해서 무조건 보이게) -->
         <div id="cart-footer" style="border-top: 1px solid #e5e7eb; padding: 1rem; background-color: #f9fafb; border-radius: 0 0 12px 12px;">
             <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: #475569;">
-                <span>총 <span id="total-items">{{ cart_count|default:0 }}</span>개</span>
-                <span style="font-weight: 700; font-size: 1.125rem; color: #1e293b;" id="widget-total-price">{{ cart_total|default:0|floatformat:0 }}원</span>
+                <span>총 <span id="total-items">{{ cart.items.all|length|default:0 }}</span>개</span>
+                <span style="font-weight: 700; font-size: 1.125rem; color: #1e293b;" id="total-price">{{ cart.get_total_price|default:0|floatformat:"0" }}원</span>
             </div>
             <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                <button style="width: 100%; background-color: #2563eb; color: white; padding: 0.5rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none;">
-                    <i class="fas fa-credit-card" style="margin-right: 0.5rem;"></i>결제하기
-                </button>
+                <a style="width: 100%; background-color: #2563eb; color: white; padding: 0.5rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                    <button id="order-btn" style="width: 100%; background-color: #2563eb; color: white; padding: 0.5rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none;">
+                        <i class="fas fa-credit-card" style="margin-right: 0.5rem;"></i>결제하기
+                    </button>
+                </a>
                 <button onclick="clearCart()" style="width: 100%; border: 1px solid #d1d5db; color: #475569; padding: 0.5rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.875rem; cursor: pointer; background-color: white;">
                     <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>전체 비우기
                 </button>
