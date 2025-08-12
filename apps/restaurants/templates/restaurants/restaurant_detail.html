@@ -3,10 +3,56 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>{{ restaurant.name }} 리뷰</title>
+    <title>{{ restaurant.name }} 식당 정보</title>
 </head>
 <body>
 <hr>
+<h2>{{ restaurant.name }}</h2>
+
+<hr>
+<div class="container mt-4">
+    <h2>메뉴</h2>
+    <div class="menu-list">
+
+        {% comment %}
+            첫 번째 루프: 뷰에서 전달받은 'menu_categories'를 순회합니다.
+            이 루프 덕분에 메뉴가 자동으로 카테고리별로 묶이게 됩니다.
+        {% endcomment %}
+        {% for category in menu_categories %}
+            <h4 class="mt-4 border-bottom pb-2">{{ category.name }}</h4>
+            <div class="list-group list-group-flush">
+
+                {% comment %} 두 번째 루프: 각 카테고리에 속한 메뉴들을 순회합니다. {% endcomment %}
+                {% for menu in category.menus.all %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            {% if menu.image %}
+                                <img src="{{ menu.image.url }}" alt="{{ menu.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px; float: left;">
+                            {% endif %}
+                            <h5 class="mb-1">{{ menu.name }}</h5>
+                            <p class="mb-1 text-muted">{{ menu.description }}</p>
+                            <strong>{{ menu.price }}원</strong>
+                        </div>
+
+                        <button class="btn btn-outline-primary add-to-cart-btn"
+                                data-menu-id="{{ menu.id }}"
+                                data-menu-name="{{ menu.name }}"
+                                data-menu-price="{{ menu.price }}">
+                            담기
+                        </button>
+                    </div>
+                {% endfor %}
+
+            </div>
+        {% empty %}
+             <p class="text-center text-muted mt-4">사장님이 메뉴를 준비 중입니다. 잠시만 기다려주세요!</p>
+        {% endfor %}
+
+    </div>
+</div>
+<hr>
+
+
 {% comment %} ... 이전 코드 (식당 정보, 메뉴 등) ... {% endcomment %}
 <div class="container mt-4">
     <h3>⭐ 방문자 리뷰 ({{ restaurant.review_count }})</h3>
@@ -75,31 +121,6 @@
 
 </div>
 
-{% comment %} ... 이후 코드 ... {% endcomment %}
-{% comment %} 메뉴 목록을 보여주는 부분 (기존 코드를 아래와 같이 수정) {% endcomment %}
-<div class="menu-list">
-    {% for category in restaurant.menu_categories.all %}
-        <h4 class="mt-4">{{ category.name }}</h4>
-        <div class="list-group">
-            {% for menu in category.menus.all %}
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>{{ menu.name }}</strong>
-                        <p class="mb-1 text-muted">{{ menu.description }}</p>
-                        <small>{{ menu.price }}원</small>
-                    </div>
-                    <button class="btn btn-outline-primary add-to-cart-btn" 
-                            data-menu-id="{{ menu.id }}"
-                            data-menu-name="{{ menu.name }}"
-                            data-menu-price="{{ menu.price }}">
-                        담기
-                    </button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endfor %}
-</div>
-
 <hr>
 
 {% comment %} 장바구니와 주문 버튼이 표시될 영역 {% endcomment %}
@@ -114,17 +135,16 @@
     </div>
 </div>
 <script>
-    // 1. 장바구니 데이터와 필요한 HTML 요소들을 변수에 저장
-    const cart = {}; // 장바구니 객체. 예: { "메뉴ID": { name, price, quantity }, ... }
-    
+    // 1. 장바구니 데이터와 필요한 HTML 요소들을 변수에 저장합니다.
+    const cart = {}; // 장바구니 데이터를 저장할 객체
     const menuList = document.querySelector('.menu-list');
     const cartItemsContainer = document.querySelector('#cart-items');
     const totalPriceEl = document.querySelector('#total-price');
     const orderBtn = document.querySelector('#order-btn');
 
-    // 2. 메뉴 '담기' 버튼 클릭 이벤트 처리
+    // 2. 메뉴 '담기' 버튼에 대한 이벤트 리스너를 설정합니다. (이벤트 위임 사용)
     menuList.addEventListener('click', function(event) {
-        // 클릭된 요소가 '담기' 버튼이 아니면 무시
+        // 클릭된 요소가 '담기' 버튼('.add-to-cart-btn')이 아니면 함수를 종료합니다.
         if (!event.target.classList.contains('add-to-cart-btn')) {
             return;
         }
@@ -134,64 +154,67 @@
         const menuName = btn.dataset.menuName;
         const menuPrice = parseInt(btn.dataset.menuPrice);
 
-        // 장바구니에 이미 있는 메뉴인지 확인
+        // 장바구니(cart) 객체에 메뉴가 이미 있는지 확인합니다.
         if (cart[menuId]) {
-            cart[menuId].quantity += 1; // 있으면 수량만 1 증가
+            // 이미 있으면 수량만 1 증가시킵니다.
+            cart[menuId].quantity += 1;
         } else {
-            // 없으면 새로 추가
+            // 없으면 새로운 메뉴 정보를 추가합니다.
             cart[menuId] = {
                 name: menuName,
                 price: menuPrice,
                 quantity: 1,
             };
         }
-        
-        console.log('장바구니 상태:', cart);
-        updateCartUI(); // 장바구니 화면 업데이트
+
+        // 장바구니 UI를 최신 상태로 업데이트합니다.
+        updateCartUI();
     });
 
     // 3. 장바구니 화면(UI)을 업데이트하는 함수
     function updateCartUI() {
-        cartItemsContainer.innerHTML = ''; // 기존 내용을 비움
+        cartItemsContainer.innerHTML = ''; // 장바구니 목록을 초기화합니다.
         let totalPrice = 0;
 
-        // 장바구니가 비어있는지 확인
+        // 장바구니가 비어있는지 확인합니다.
         if (Object.keys(cart).length === 0) {
             cartItemsContainer.innerHTML = '<p>장바구니가 비어 있습니다.</p>';
             totalPriceEl.textContent = 0;
-            return;
+            return; // 함수를 종료합니다.
         }
 
+        // 장바구니에 담긴 각 메뉴에 대해 HTML을 생성하고 총액을 계산합니다.
         for (const menuId in cart) {
             const item = cart[menuId];
             totalPrice += item.price * item.quantity;
-            
-            // 각 메뉴 아이템을 표시할 HTML 생성
+
+            // 각 메뉴 아이템을 표시할 HTML 요소를 생성합니다.
             const itemEl = document.createElement('div');
             itemEl.classList.add('d-flex', 'justify-content-between', 'my-2');
             itemEl.innerHTML = `
                 <span>${item.name} x ${item.quantity}</span>
                 <span>${(item.price * item.quantity).toLocaleString()}원</span>
             `;
-            cartItemsContainer.appendChild(itemEl);
+            cartItemsContainer.appendChild(itemEl); // 생성된 요소를 장바구니 목록에 추가합니다.
         }
 
+        // 계산된 총 주문 금액을 화면에 표시합니다.
         totalPriceEl.textContent = totalPrice.toLocaleString();
     }
-    
-    // 4. '주문하기' 버튼 클릭 이벤트 처리 (백엔드와 통신)
+
+    // 4. '주문하기' 버튼 클릭 시 동작을 정의합니다.
     orderBtn.addEventListener('click', function() {
         if (Object.keys(cart).length === 0) {
             alert('장바구니에 메뉴를 담아주세요!');
             return;
         }
 
-        // 백엔드(OrderCreateView)가 기대하는 데이터 형식으로 변환
+        // 백엔드로 전송할 데이터 형식을 만듭니다.
         const cartItemsForBackend = Object.keys(cart).map(menuId => {
             return {
                 menu_id: menuId,
                 quantity: cart[menuId].quantity,
-                options: {} // (옵션 기능은 여기서 추가 구현 필요)
+                options: {} // (옵션 기능은 추후 구현)
             };
         });
 
@@ -199,11 +222,11 @@
             restaurant_pk: "{{ restaurant.pk }}",
             cart_items: cartItemsForBackend,
         };
-        
-        // Django의 CSRF 보호 기능을 통과하기 위해 토큰을 헤더에 추가
+
+        // CSRF 토큰을 가져옵니다.
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-        // fetch API를 사용해 백엔드로 데이터 전송
+        // fetch API를 사용하여 서버에 주문 데이터를 전송합니다.
         fetch("{% url 'restaurants:order_create' %}", {
             method: 'POST',
             headers: {
@@ -217,8 +240,7 @@
         .then(data => {
             if (data.success) {
                 alert('주문이 성공적으로 완료되었습니다!');
-                // 백엔드가 알려준 주문 상세 페이지로 이동
-                window.location.href = data.redirect_url;
+                window.location.href = data.redirect_url; // 주문 완료 페이지로 이동
             } else {
                 alert('주문에 실패했습니다: ' + data.error);
             }

@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone  # timezone.now() 사용을 위해 추가
-
+from django.db.models import Avg
 from apps.accounts.models import Address
 
 
@@ -13,9 +13,9 @@ class Restaurant(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     category = models.CharField(max_length=50)
-    operating_hours = models.JSONField()
-    minimum_order = models.PositiveIntegerField()
-    delivery_fee = models.PositiveIntegerField()
+    operating_hours = models.JSONField(default=dict)
+    minimum_order = models.PositiveIntegerField(default=15000)
+    delivery_fee = models.PositiveIntegerField(default=3000)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
     review_count = models.PositiveIntegerField(default=0)
     is_open = models.BooleanField(default=True)
@@ -145,7 +145,9 @@ class Menu(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'[{self.restaurant.name}] {self.name}'
+        if self.category and self.category.restaurant:
+            return f'[{self.category.restaurant.name}] {self.name}'  # ✅ self.category.restaurant 사용
+        return self.name
 
     def get_formatted_price(self):
         # Placeholder for price formatting

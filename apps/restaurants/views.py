@@ -57,6 +57,8 @@ class RestaurantDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        categories = self.object.menu_categories.all().prefetch_related('menus')
+        context['menu_categories'] = categories
         # 리뷰 작성 폼을 컨텍스트에 추가
         context['review_form'] = ReviewForm()
         # 해당 가게의 리뷰 목록을 컨텍스트에 추가
