@@ -111,6 +111,24 @@ class RestaurantDetailView(DetailView):
         context['review_form'] = ReviewForm()
         # 해당 가게의 리뷰 목록을 컨텍스트에 추가
         context['reviews'] = self.object.reviews.select_related('user', 'comment').all()
+
+        if self.request.user.is_authenticated:
+            from apps.orders.models import Cart
+            import json
+            cart, created = Cart.objects.get_or_create(user=self.request.user)
+            context['cart'] = cart
+            cart_data_for_js = {
+                item.menu.id: {
+                    'name': item.menu.name,
+                    'price': item.menu.price,
+                    'quantity': item.quantity
+                } for item in cart.items.all()
+            }
+            context['cart_json'] = json.dumps(cart_data_for_js)
+        else:
+            context['cart'] = None
+            context['cart_json'] = '{}'
+
         return context
 
 

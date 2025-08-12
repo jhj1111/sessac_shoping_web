@@ -40,13 +40,16 @@
     // }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const cart = {};
+        const cart = initialCartData || {};
         
         const menuListContainer = document.querySelector('.menu-list');
         const cartItemsContainer = document.querySelector('#cart-items');
         const totalPriceEl = document.querySelector('#total-price');
         const orderBtn = document.querySelector('#order-btn');
         // const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // Initial UI update based on loaded data
+        updateCartUI();
 
         menuListContainer.addEventListener('click', function(event) {
             if (!event.target.classList.contains('add-to-cart-btn')) {

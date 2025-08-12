@@ -202,6 +202,9 @@
 
 
 <script>
+    const initialCartData = JSON.parse('{{ cart_json|escapejs }}');
+</script>
+<script>
     {% include 'js/cart_widget.js' %}
 </script>
 {% endblock food_section %}
