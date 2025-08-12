@@ -106,3 +106,55 @@ class CartService:
             )
         
         return order
+
+
+class CartService:
+    @staticmethod
+    def add_item_to_cart(cart, menu, quantity, options=None):
+        """장바구니에 아이템 추가"""
+        # 기존에 같은 메뉴가 있는지 확인
+        existing_item = cart.items.filter(menu=menu, options=options).first()
+
+        if existing_item:
+            existing_item.quantity += quantity
+            existing_item.save()
+            return existing_item
+        else:
+            # 새 아이템 생성 (CartItem 모델 필요)
+            cart_item = cart.items.create(
+                menu=menu,
+                quantity=quantity,
+                options=options or {}
+            )
+            return cart_item
+
+    @staticmethod
+    def update_item_quantity(cart, item_id, quantity):
+        """장바구니 아이템 수량 업데이트"""
+        cart_item = cart.items.get(id=item_id)
+        cart_item.quantity = quantity
+        cart_item.save()
+        return cart_item
+
+    @staticmethod
+    def remove_item_from_cart(cart, item_id):
+        """장바구니에서 아이템 제거"""
+        cart_item = cart.items.get(id=item_id)
+        cart_item.delete()
+        return True
+
+    @staticmethod
+    def clear_cart(cart):
+        """장바구니 전체 비우기"""
+        cart.items.all().delete()
+        return True
+
+    @staticmethod
+    def get_cart_total(cart):
+        """장바구니 총 금액 계산"""
+        return sum(item.total_price for item in cart.items.all())
+
+    @staticmethod
+    def get_cart_count(cart):
+        """장바구니 총 아이템 개수"""
+        return sum(item.quantity for item in cart.items.all())

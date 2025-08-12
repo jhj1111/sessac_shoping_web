@@ -1,5 +1,7 @@
 {% extends 'main/base.html' %}
 {% load static %}
+{% load custom_filters %}
+
     {% block title %}
         <title>sesac_web_main</title>
     {% endblock %}
@@ -108,8 +110,9 @@
   </div>
     {% endblock %}
 
-
 <!-- 인기 음식점 -->
+
+
     {% block popular_restaurants %}
        <!-- offer section -->
       <section class="offer_section layout_padding-bottom">
@@ -180,180 +183,63 @@
 
       <ul class="filters_menu">
         <li class="active" data-filter="*">전체</li>
-        <li data-filter=".korea">한식</li>
-        <li data-filter=".china">중식</li>
-        <li data-filter=".japan">일식</li>
-        <li data-filter=".usa">양식</li>
-        <li data-filter=".dessert">디저트</li>
+        {% for code, name in categories %}
+          <li data-filter=".{{ code }}">{{ name }}</li>
+        {% endfor %}
       </ul>
-    {% endblock categories-nav %}
+  {% endblock categories-nav %}
 
     <!-- food section -->
-    {% block food_section %}
-        <div class="filters-content">
-        <div class="row grid">
-        {% for restaurant in restaurants %}
-          <div class="col-sm-6 col-lg-4 all">  <!-- dessert는 디저트 항목 -->
-            <div class="box">
-              <div>
-                <div class="img-box">
-                    {% if restaurant.image %}
-                    <a href="/restaurants/{{ restaurant.id }}/"><img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}"></a>
-                    {% else %}
-                    <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
-                    {% endif %}
-                </div>
-                <div class="detail-box">
-                  <h5>
-                    {{ restaurant.name }}
-                  </h5>
-                  <p>
-                    {{ restaurant.description }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-{#          <div class="col-sm-6 col-lg-4 all japan">#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명 2#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    2#}
-{#                  </p>#}
-{#                  <!--#}
-{#                  <div class="options">#}
-{##}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#          <div class="col-sm-6 col-lg-4 all korea">#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명 3#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    3#}
-{#                  </p>#}
-{#                  <!--#}
-{#                  <div class="options">#}
-{##}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#          <div class="col-sm-6 col-lg-4 all usa">  <!-- dessert는 디저트 항목 -->#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명4#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    가게 파는거 설명1#}
-{#                  </p>#}
-{#                  <!-- 버튼 없애는거#}
-{#                  <div class="options">#}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#          <div class="col-sm-6 col-lg-4 all china">#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명 5#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    2#}
-{#                  </p>#}
-{#                  <!--#}
-{#                  <div class="options">#}
-{##}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
-{#          <div class="col-sm-6 col-lg-4 all usa">#}
-{#            <div class="box">#}
-{#              <div>#}
-{#                <div class="img-box">#}
-{#                  <img src="{% static 'images/about-img.png' %} " alt="">#}
-{#                </div>#}
-{#                <div class="detail-box">#}
-{#                  <h5>#}
-{#                    가게명 6#}
-{#                  </h5>#}
-{#                  <p>#}
-{#                    3#}
-{#                  </p>#}
-{#                  <!--#}
-{#                  <div class="options">#}
-{##}
-{#                    <a href="">#}
-{#                      <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 456.029 456.029" style="enable-background:new 0 0 456.029 456.029;" xml:space="preserve">#}
-{##}
-{#                      </svg>#}
-{#                    </a>#}
-{#                  </div>#}
-{#                  -->#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#          </div>#}
+{% block food_section %}
+
+<div class="row grid" id="restaurant-grid">
+  <!-- 전체 6개 보여주기 -->
+  {% for restaurant in restaurants %}
+    <div class="col-sm-6 col-lg-4 filter-item all {{ restaurant.category }}" data-category="all">
+      <div class="box">
+        <div class="img-box">
+          <a href="/restaurants/{{ restaurant.id }}/">
+            {% if restaurant.image %}
+              <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}">
+            {% else %}
+              <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
+            {% endif %}
+          </a>
         </div>
-      </div>  <!-- grid-->
-      <div class="btn-box">
-        <a href="{% url 'restaurants:main-detail' %}">
-          View More
-        </a>
+        <div class="detail-box">
+          <h5>{{ restaurant.name }}</h5>
+          <p>{{ restaurant.description }}</p>
+        </div>
       </div>
-    {% endblock %}
+    </div>
+  {% endfor %}
+
+  <!-- 카테고리별 6개씩 (전체에 포함된 항목 제외) -->
+  {% for code, name in categories %}
+    {% for restaurant in category_restaurants|dict_key:code %}
+      <div class="col-sm-6 col-lg-4 filter-item {{ code }}" data-category="{{ code }}" style="display:none;">
+        <div class="box">
+          <div class="img-box">
+            <a href="/restaurants/{{ restaurant.id }}/">
+              {% if restaurant.image %}
+                <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}">
+              {% else %}
+                <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
+              {% endif %}
+            </a>
+          </div>
+          <div class="detail-box">
+            <h5>{{ restaurant.name }}</h5>
+            <p>{{ restaurant.description }}</p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endfor %}
+</div>
+
+  <div class="btn-box">
+    <a href="{% url 'restaurants:main-detail' %}">View More</a>
+  </div>
+
+{% endblock %}
