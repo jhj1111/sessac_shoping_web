@@ -12,6 +12,8 @@ from datetime import timedelta
 from ..orders.models import Order
 from ..accounts.models import CustomUser
 from ..accounts.forms import UserProfileForm
+
+from apps.restaurants.models import Review
 # from ..reviews.models import Review
 # from ..favorites.models import Favorite
 # from ..support.models import Inquiry
@@ -99,14 +101,14 @@ class MyPageOrderListView(LoginRequiredMixin, TemplateView):
 
 class MyPageReviewListView(LoginRequiredMixin, ListView):
     """작성 리뷰 조회"""
-    # model = Review
-    template_name = 'mypage/mypage_review_list.html'
+    model = Review
+    template_name = 'mypage/my_review_list.html'
     context_object_name = 'reviews'
     paginate_by = 10
 
     def get_queryset(self):
-        # return Review.objects.filter(user=self.request.user).order_by('-created_at')
-        return [] # 임시
+         return Review.objects.filter(user=self.request.user).order_by('-created_at')
+          # return [] # 임시
 
 class MyPageFavoriteListView(LoginRequiredMixin, ListView):
     """즐겨찾기 조회"""

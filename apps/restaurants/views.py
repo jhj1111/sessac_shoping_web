@@ -10,15 +10,16 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.views import View
 
-from .models import Restaurant, Menu, MenuCategory
+from .models import Restaurant, Menu, MenuCategory, Review
 from apps.orders.models import Order, OrderItem
-from .forms import ReviewForm
+from .forms import ReviewForm, ReviewCommentForm
 # 'accounts' 앱의 Address 모델을 가져옵니다. 앱 구조에 맞게 수정이 필요할 수 있습니다.
 from apps.accounts.models import Address
 
@@ -88,6 +89,7 @@ class RestaurantDetailView(DetailView):
         context['restaurant'] = restaurant
         # 리뷰 작성 폼을 컨텍스트에 추가
         context['review_form'] = ReviewForm()
+        context['comment_form'] = ReviewCommentForm()
         # 해당 가게의 리뷰 목록을 컨텍스트에 추가
         context['reviews'] = self.object.reviews.select_related('user', 'comment').all()
         return context
@@ -109,6 +111,29 @@ class ReviewCreateView(LoginRequiredMixin, CreateView):
         restaurant_pk = self.kwargs['restaurant_pk']
         return redirect('restaurants:restaurant_detail', pk=restaurant_pk)
 
+
+@login_required
+def comment_create(request, review_pk):
+    """
+    사장님이 작성한 답글을 생성(저장)하는 뷰
+    """
+    review = get_object_or_404(Review, pk=review_pk)
+
+    # ⭐ 권한 확인: 현재 로그인한 사용자가 리뷰가 달린 가게의 사장님인지 확인
+    if request.user != review.restaurant.owner:
+        return HttpResponseForbidden("답글을 작성할 권한이 없습니다.")
+
+    # POST 요청일 때만 처리
+    if request.method == 'POST':
+        form = ReviewCommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.review = review  # 이 답글이 어떤 리뷰에 속하는지 연결
+            comment.save()
+            return redirect('restaurants:detail', pk=review.restaurant.pk)  # 성공 시 가게 상세 페이지로 이동
+
+    # GET 요청이거나 폼이 유효하지 않을 경우, 원래 상세 페이지로 리다이렉트
+    return redirect('restaurants:detail', pk=review.restaurant.pk)
 
 class OrderCreateView(LoginRequiredMixin, View):
     """

@@ -200,7 +200,7 @@
                     {% if restaurant.image %}
                     <a href="/restaurants/{{ restaurant.id }}/"><img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}"></a>
                     {% else %}
-                    <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
+                        <a href="/restaurants/{{ restaurant.id }}/"><img src="{% static 'images/about-img.png' %}" alt="기본 이미지"></a>
                     {% endif %}
                 </div>
                 <div class="detail-box">

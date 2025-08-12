@@ -3,7 +3,7 @@
 {% block title %}{{ restaurant.name }} - 상세 정보{% endblock %}
 <!-- Bootstrap CSS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 {% block food_section %}
 <style>
     /* 간단한 스타일 추가 */
@@ -28,6 +28,16 @@
     .sold-out {
         opacity: 0.5;
         pointer-events: none;
+    }
+    #star-rating-ui .star {
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #e0e0e0;
+        transition: color 0.2s;
+    }
+    /* Django 폼이 기본으로 생성하는 rating 필드는 숨김 처리 */
+    #review-form #div_id_rating {
+        display: none;
     }
 </style>
 
@@ -144,27 +154,39 @@
             
             <div class="list-group mt-3">
                 {% for review in reviews %}
-                    <div class="list-group-item list-group-item-action flex-column align-items-start">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">{{ review.user.username }}</h5>
-                            <small>별점: {{ review.rating }} / 5.0</small>
-                        </div>
-                        <p class="mb-1">{{ review.content }}</p>
-                        {% if review.image %}
-                            <img src="{{ review.image.url }}" alt="리뷰 사진" class="img-fluid rounded mt-2" style="max-height: 200px;">
-                        {% endif %}
-                        <small class="text-muted">{{ review.created_at|date:"Y년 m월 d일" }}</small>
-                        
-                        {% if review.comment %}
+                <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 border rounded">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ review.user.username }}</h5>
+                        <small class="text-warning">⭐ {{ review.rating|floatformat:1 }}</small>
+                    </div>
+                    <p class="mb-1">{{ review.content|linebreaksbr }}</p>
+                    {% if review.image %}
+                        <img src="{{ review.image.url }}" alt="리뷰 사진" class="img-fluid rounded mt-2" style="max-height: 200px;">
+                    {% endif %}
+                    <small class="text-muted">{{ review.created_at|date:"Y년 m월 d일" }}</small>
+
+                    {% if review.comment %}
                         <div class="mt-3 p-3 bg-light rounded">
-                            <h6>사장님 댓글</h6>
-                            <p class="mb-0">{{ review.comment.content }}</p>
+                            <h6 class="text-primary fw-bold"><i class="bi bi-chat-right-text-fill"></i> 사장님 댓글</h6>
+                            <p class="mb-0">{{ review.comment.content|linebreaksbr }}</p>
                             <small class="text-muted">{{ review.comment.created_at|date:"Y년 m월 d일" }}</small>
                         </div>
+                    {% else %}
+                        {% if request.user.is_authenticated and request.user == restaurant.owner %}
+                        <div class="mt-3">
+                            <form action="{% url 'restaurants:comment_create' review.pk %}" method="post">
+                                {% csrf_token %}
+                                <div class="input-group">
+                                    {{ comment_form.content }}
+                                    <button type="submit" class="btn btn-outline-primary">답글 등록</button>
+                                </div>
+                            </form>
+                        </div>
                         {% endif %}
+                    {% endif %}
                     </div>
                 {% empty %}
-                    <p>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요!</p>
+                <div class="alert alert-secondary">아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요!</div>
                 {% endfor %}
             </div>
 
@@ -174,20 +196,28 @@
             {% if user.is_authenticated %}
                 <form action="{% url 'restaurants:review_create' restaurant.pk %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="id_rating" class="form-label">별점</label>
-                        {{ review_form.rating }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_content" class="form-label">내용</label>
-                        {{ review_form.content }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_image" class="form-label">사진 첨부</label>
-                        {{ review_form.image }}
-                    </div>
-                    <button type="submit" class="btn btn-primary">리뷰 등록</button>
-                </form>
+
+                    <div id="div_id_rating" class="mb-3">
+                    {{ review_form.rating }}
+                </div>
+
+                <div id="star-rating-ui" class="mb-3">
+                    <label class="form-label">별점<span class="text-danger">*</span></label>
+                    <div>
+                        </div>
+                    <small id="star-rating-text" class="ms-2 fw-bold text-warning">0.0</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_content" class="form-label">내용</label>
+                    {{ review_form.content }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_image" class="form-label">사진 첨부</label>
+                    {{ review_form.image }}
+                </div>
+                <button type="submit" class="btn btn-primary">리뷰 등록</button>
+            </form>
             {% else %}
                 <p><a href="{% url 'accounts:login' %}?next={{ request.path }}">로그인</a> 후 리뷰를 작성할 수 있습니다.</p>
             {% endif %}
@@ -357,6 +387,85 @@
                 alert('주문 처리 중 오류가 발생했습니다.');
             });
         });
+
+    // =================================================
+// ⭐ 리뷰 폼 별점 기능 (0.5 단위 지원)
+// =================================================
+const starRatingWrapper = document.querySelector('#star-rating-ui');
+if (starRatingWrapper) {
+    const starContainer = starRatingWrapper.querySelector('div');
+    const hiddenRatingInput = document.querySelector('#review-form #id_rating');
+    const ratingText = starRatingWrapper.querySelector('#star-rating-text');
+
+    // 이전에 입력된 값이 있으면 그 값을, 없으면 0으로 시작
+    let currentRating = hiddenRatingInput.value ? parseFloat(hiddenRatingInput.value) : 0;
+
+    // 별 아이콘 5개를 동적으로 생성
+    for (let i = 1; i <= 5; i++) {
+        const starSpan = document.createElement('span');
+        starSpan.classList.add('star');
+        starSpan.dataset.value = i;
+        starSpan.innerHTML = `<i class="bi bi-star"></i>`; // 기본 빈 별 아이콘
+        starContainer.appendChild(starSpan);
+    }
+    const stars = starContainer.querySelectorAll('.star');
+
+    // [핵심] 마우스 위치에 따라 0.5 또는 1.0 단위 점수를 계산하는 함수
+    const getRatingFromEvent = (e) => {
+        const starElement = e.currentTarget;
+        const starValue = parseFloat(starElement.dataset.value);
+        const clickX = e.offsetX; // 별 요소 내부의 가로 좌표
+        const starWidth = starElement.clientWidth; // 별 요소의 전체 너비
+
+        // 클릭 위치가 별 너비의 절반보다 작으면 0.5점, 크면 1.0점으로 계산
+        return clickX < starWidth / 2 ? starValue - 0.5 : starValue;
+    };
+
+    // [핵심] 현재 점수에 맞춰 별 모양(채움/반만 채움/비움)을 업데이트하는 함수
+    const updateStarsVisual = (rating) => {
+        stars.forEach(star => {
+            const starValue = parseFloat(star.dataset.value);
+            const icon = star.querySelector('i');
+
+            if (rating >= starValue) {
+                // 점수가 별의 값보다 크거나 같으면 꽉 찬 별
+                icon.className = 'bi bi-star-fill text-warning';
+            } else if (rating >= starValue - 0.5) {
+                // 점수가 별의 값 - 0.5보다 크거나 같으면 반만 찬 별
+                icon.className = 'bi bi-star-half text-warning';
+            } else {
+                // 그 외에는 빈 별
+                icon.className = 'bi bi-star';
+            }
+        });
+        // 텍스트로도 현재 점수 표시
+        ratingText.textContent = parseFloat(rating).toFixed(1);
+    };
+
+    // 각 별에 이벤트 리스너 추가
+    stars.forEach(star => {
+        // 마우스가 별 위로 움직일 때: 실시간으로 별 모양 변경 (미리보기)
+        star.addEventListener('mousemove', e => {
+            const hoverRating = getRatingFromEvent(e);
+            updateStarsVisual(hoverRating);
+        });
+
+        // 마우스가 별에서 벗어났을 때: 원래 선택했던 별점으로 복구
+        star.addEventListener('mouseleave', () => {
+            updateStarsVisual(currentRating);
+        });
+
+        // 별을 클릭했을 때: 현재 점수를 확정하고, 숨겨진 input 값 업데이트
+        star.addEventListener('click', e => {
+            currentRating = getRatingFromEvent(e);
+            hiddenRatingInput.value = currentRating; // Django 폼으로 전송될 값 업데이트
+            updateStarsVisual(currentRating);
+        });
     });
+
+    // 페이지가 처음 로드될 때, 저장된 현재 점수를 기준으로 별 모양을 초기화
+    updateStarsVisual(currentRating);
+}
+});
 </script>
 {% endblock food_section %}
