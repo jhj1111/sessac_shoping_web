@@ -3,7 +3,7 @@ $black: #000000;
 $primary1: #ffbe33;
 $primary2: #222831;
 $textCol: #1f1f1f;
-
+$gray: #6c757d;
 // import fonts -  font-family: 'Open Sans', sans-serif and  font-family: 'Dancing Script', cursive;
 
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap');
@@ -178,9 +178,10 @@ a:focus {
   }
 }
 
+
 .custom_nav-container {
   padding: 0;
-  background-color: $gray;
+  background-color: #6c757d;
 
   .navbar-nav {
     padding-left: 18%;
