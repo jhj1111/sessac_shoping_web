@@ -35,6 +35,13 @@ class PostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         categories = Restaurant.CATEGORY_CHOICES
+        user = self.request.user
+        user_address = ""
+        if user.is_authenticated:
+            user_address = user.address
+        restaurants_data = list(Restaurant.objects.all().values('name', 'address'))
+        context['user_address'] = user_address
+        context['restaurants_data'] = restaurants_data
 
         # 전체 6개 가져오기 (최신 순으로 변경 원하면 order_by('-id'))
         restaurants_6 = Restaurant.objects.all()[:6]
