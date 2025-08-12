@@ -1,6 +1,5 @@
 import json
 from urllib import request
-from django.core.serializers import serialize # Django의 시리얼라이저를 추가합니다.
 
 from django.utils import timezone
 
@@ -23,34 +22,42 @@ from .forms import ReviewForm
 # 'accounts' 앱의 Address 모델을 가져옵니다. 앱 구조에 맞게 수정이 필요할 수 있습니다.
 from apps.accounts.models import Address
 
+
 def post_list(request):
     return render(request, template_name='main/base.html')
 
 
 class PostListView(ListView):
-    model = Post
+    model = Restaurant
     template_name = 'main/post_list.html'
     context_object_name = 'restaurants'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user
+        categories = Restaurant.CATEGORY_CHOICES
 
-        user_address = ""
+        # 전체 6개 가져오기 (최신 순으로 변경 원하면 order_by('-id'))
+        restaurants_6 = Restaurant.objects.all()[:6]
+        exclude_ids = [r.id for r in restaurants_6]
 
-        if user.is_authenticated:
-           user_address =user.address
+        # 카테고리별 6개씩, 전체 6개는 제외
+        category_restaurants = {}
+        for code, name in categories:
+            category_restaurants[code] = Restaurant.objects.filter(category=code).exclude(id__in=exclude_ids)[:6]
 
-
-        context['user_address'] = user_address
-        context['restaurants'] = Restaurant.objects.all()
-        restaurants_data = list(Restaurant.objects.all().values('name', 'address'))
-        context['restaurants_data'] = restaurants_data
+        context['categories'] = categories
+        context['restaurants'] = restaurants_6
+        context['category_restaurants'] = category_restaurants
         return context
-
-class MainDetailView(TemplateView):
-    #model = Post
+class MainDetailView(ListView):
+    model = Restaurant
     template_name = 'main/post_main_detail.html'
+    context_object_name = 'restaurants'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Restaurant.CATEGORY_CHOICES  # 카테고리 목록 추가
+        return context
     # 특정 상세 페이지가 아니라서 이렇게만 하면 이동
 
 # 상세 페이지

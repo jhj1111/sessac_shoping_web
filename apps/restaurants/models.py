@@ -4,15 +4,31 @@ from django.utils import timezone  # timezone.now() 사용을 위해 추가
 
 from apps.accounts.models import Address
 
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True)  # 예: '한식', '중식' ...
+    slug = models.SlugField(max_length=50, unique=True) # URL이나 클래스명으로 쓰기 좋게
+
+    def __str__(self):
+        return self.name
+
+
 
 class Restaurant(models.Model):
+    CATEGORY_CHOICES = [
+        ('korea', '한식'),
+        ('china', '중식'),
+        ('japan', '일식'),
+        ('usa', '양식'),
+        ('dessert', '디저트'),
+    ]
+
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='restaurants/', blank=True, null=True)
     phone = models.CharField(max_length=20)
     address = models.TextField()
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    category = models.CharField(max_length=50)
+    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
     operating_hours = models.JSONField()
     minimum_order = models.PositiveIntegerField()
     delivery_fee = models.PositiveIntegerField()

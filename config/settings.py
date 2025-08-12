@@ -71,14 +71,17 @@ ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / "templates"],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+
+
             ],
         },
     },
@@ -129,7 +132,7 @@ SITE_ID = 1
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*',]
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-LOGIN_REDIRECT_URL = '/restaurants/'
+LOGIN_REDIRECT_URL = 'restaurants:post-list'
 LOGOUT_REDIRECT_URL = '/restaurants/'
 
 ACCOUNT_SIGNUP_EMAIL_ENTER_YOUR_OWN = False
