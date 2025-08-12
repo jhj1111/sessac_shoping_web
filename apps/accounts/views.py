@@ -37,3 +37,5 @@ class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('restaurants:post-list')
 
 
+
+

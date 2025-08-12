@@ -3,6 +3,7 @@
 <html>
 
 <head>
+      <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=8ac5baa2b676940c98642b8ff90d2392&libraries=services"></script>
       <!-- Basic -->
       <meta charset="utf-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -14,8 +15,10 @@
       <meta name="author" content="" />
       <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" type="image/x-icon">
 
-      {% block title %}
-      {% endblock %}
+      <title>
+        {% block title %}
+        {% endblock %}
+      </title>
 
       <!-- bootstrap core css -->
       <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}" />
@@ -38,42 +41,22 @@
     {% block banner %}
     {% endblock %}
 
+
     {% block popular_restaurants %}
     {% endblock %}
 
-
+    {% block main_title %}
+    {% endblock %}
   <!-- food section -->
+
 
   <section class="food_section layout_padding-bottom">
     <div class="container">
-
-        {% block main_title %}
-        {% endblock %}
-
-       <div class="container my-4">
-          <div class="row justify-content-center">
-            <div class="col-md-6">
-              <form method="get" class="input-group">
-                <input type="text"
-                       name="q"
-                       class="form-control"
-                       placeholder="가게 검색어를 입력하세요."
-                       value="{{ query }}">
-                <button type="submit" class="btn btn-dark">검색</button>
-              </form>
-            </div>
-          </div>
-        </div>
+      {% block categories-nav %}
 
 
-      <ul class="filters_menu">
-        <li class="active" data-filter="*">전체</li>
-        <li data-filter=".korea">한식</li>
-        <li data-filter=".china">중식</li>
-        <li data-filter=".japan">일식</li>
-        <li data-filter=".usa">양식</li>
-        <li data-filter=".dessert">디저트</li>
-      </ul>
+
+      {% endblock categories-nav %}
 
         {% block food_section %}
         {% endblock %}
@@ -82,7 +65,8 @@
   </section>
   <!-- end food section -->
 
-
+    {% block content %}
+    {% endblock %}
     {% include 'main/footer.html' %}
 
 
@@ -104,8 +88,8 @@
   <!-- custom js -->
   <script src="{% static 'js/custom.js' %}"></script>
   <!-- Google Map -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap">
-  </script>
+
+
   <!-- End Google Map -->
 
 </body>

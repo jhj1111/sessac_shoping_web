@@ -1,254 +1,364 @@
-<!DOCTYPE html>
-<html lang="ko">
+{% extends 'main/base.html' %}
+{% load static %}
+{% block title %}{{ restaurant.name }} - 상세 정보{% endblock %}
+<!-- Bootstrap CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
 
-<head>
-    <meta charset="UTF-8">
-    <title>{{ restaurant.name }} 식당 정보</title>
-</head>
-<body>
-<hr>
-<h2>{{ restaurant.name }}</h2>
+{% block food_section %}
+<style>
+    /* 간단한 스타일 추가 */
+    .restaurant-banner {
+        height: 300px;
+        background-size: cover;
+        background-position: center;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .menu-card {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .menu-card:hover {
+        transform: translateY(-5px);
+    }
+    .sold-out {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+</style>
 
-<hr>
-<div class="container mt-4">
-    <h2>메뉴</h2>
-    <div class="menu-list">
+{% include 'main/widget.html' %} <!--위젯 추가  -->
 
-        {% comment %}
-            첫 번째 루프: 뷰에서 전달받은 'menu_categories'를 순회합니다.
-            이 루프 덕분에 메뉴가 자동으로 카테고리별로 묶이게 됩니다.
-        {% endcomment %}
-        {% for category in menu_categories %}
-            <h4 class="mt-4 border-bottom pb-2">{{ category.name }}</h4>
-            <div class="list-group list-group-flush">
+<div class="container my-5">
+    {% csrf_token %}
+    <!-- 1. 가게 핵심 정보 -->
+    <div class="restaurant-banner rounded mb-4" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{% if restaurant.image %}{{ restaurant.image.url }}{% else %}{% static 'no_image.jpg' %}{% endif %}');">
+        <h1 class="display-4">{{ restaurant.name }}</h1>
+        <p class="lead">
+            <span class="badge bg-warning text-dark fs-5">⭐ {{ restaurant.rating|floatformat:1 }}</span>
+            <span class="ms-2">리뷰 {{ restaurant.review_count }}개</span>
+        </p>
+        <p class="fs-5">
+            <strong>최소주문:</strong> {{ restaurant.minimum_order|floatformat:"0" }}원 |
+            <strong>배달비:</strong> {{ restaurant.delivery_fee|floatformat:"0" }}원
+        </p>
+    </div>
 
-                {% comment %} 두 번째 루프: 각 카테고리에 속한 메뉴들을 순회합니다. {% endcomment %}
-                {% for menu in category.menus.all %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            {% if menu.image %}
-                                <img src="{{ menu.image.url }}" alt="{{ menu.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px; float: left;">
-                            {% endif %}
-                            <h5 class="mb-1">{{ menu.name }}</h5>
-                            <p class="mb-1 text-muted">{{ menu.description }}</p>
-                            <strong>{{ menu.price }}원</strong>
+    <!-- 2. 탭 메뉴 (메뉴, 정보, 리뷰) -->
+    <ul class="nav nav-tabs nav-fill mb-3" id="restaurantTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="menu-tab" data-bs-toggle="tab" data-bs-target="#menu" type="button" role="tab" aria-controls="menu" aria-selected="true">메뉴</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="false">정보</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">리뷰</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="restaurantTabContent">
+        <!-- 메뉴 탭 -->
+        <div class="tab-pane fade show active" id="menu" role="tabpanel" aria-labelledby="menu-tab">
+            <div class="menu-list">
+            {% for category in menu_categories %}
+                <h3 class="mt-4">{{ category.name }}</h3>
+                <hr>
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for menu in category.menus.all %}
+                    <div class="col">
+                        <div class="card h-100 {% if not menu.is_available %}sold-out{% endif %}">
+                            <div class="row g-0">
+                                <div class="col-md-4">
+                                    <img src="{% if menu.image %}{{ menu.image.url }}{% else %}{% static 'no_image.jpg' %}{% endif %}" class="img-fluid rounded-start" alt="{{ menu.name }}">
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            {{ menu.name }}
+                                            {% if menu.is_popular %}<span class="badge bg-danger">인기</span>{% endif %}
+                                        </h5>
+                                        <p class="card-text"><small>{{ menu.description }}</small></p>
+                                        <p class="card-text"><strong>{{ menu.price|floatformat:"0" }}원</strong></p>
+                                        {% if menu.is_available %}
+                                            <button class="btn btn-primary add-to-cart-btn"
+                                                    data-menu-id="{{ menu.pk }}"
+                                                    data-menu-name="{{ menu.name }}"
+                                                    data-menu-price="{{ menu.price }}">
+                                                장바구니에 담기
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-secondary" disabled>품절</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <button class="btn btn-outline-primary add-to-cart-btn"
-                                data-menu-id="{{ menu.id }}"
-                                data-menu-name="{{ menu.name }}"
-                                data-menu-price="{{ menu.price }}">
-                            담기
-                        </button>
                     </div>
+                    {% empty %}
+                    <p>이 카테고리에는 아직 메뉴가 없습니다.</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+
+        <!-- 정보 탭 -->
+        <div class="tab-pane fade" id="info" role="tabpanel" aria-labelledby="info-tab">
+            <div class="card">
+                <div class="card-body">
+                    {% if restaurant.owner_notice %}
+                    <div class="alert alert-info">
+                        <strong>사장님 공지:</strong> {{ restaurant.owner_notice }}
+                    </div>
+                    {% endif %}
+                    <dl class="row">
+                        <dt class="col-sm-3">가게소개</dt>
+                        <dd class="col-sm-9">{{ restaurant.description|linebreaksbr }}</dd>
+
+                        <dt class="col-sm-3">영업시간</dt>
+                        <dd class="col-sm-9">
+                            {% for day, hours in restaurant.operating_hours.items %}
+                                <p class="mb-1"><strong>{{ day }}:</strong> {{ hours.0 }} - {{ hours.1 }}</p>
+                            {% endfor %}
+                        </dd>
+
+                        <dt class="col-sm-3">전화번호</dt>
+                        <dd class="col-sm-9">{{ restaurant.phone }}</dd>
+
+                        <dt class="col-sm-3">주소</dt>
+                        <dd class="col-sm-9">{{ restaurant.address }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- 리뷰 탭 -->
+        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+            <h3>⭐ 방문자 리뷰 ({{ restaurant.review_count }})</h3>
+            <div class="d-flex align-items-center mb-3">
+                <span class="badge bg-primary me-2">⭐ {{ restaurant.rating|floatformat:1 }}</span>
+            </div>
+
+            <div class="list-group mt-3">
+                {% for review in reviews %}
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ review.user.username }}</h5>
+                            <small>별점: {{ review.rating }} / 5.0</small>
+                        </div>
+                        <p class="mb-1">{{ review.content }}</p>
+                        {% if review.image %}
+                            <img src="{{ review.image.url }}" alt="리뷰 사진" class="img-fluid rounded mt-2" style="max-height: 200px;">
+                        {% endif %}
+                        <small class="text-muted">{{ review.created_at|date:"Y년 m월 d일" }}</small>
+
+                        {% if review.comment %}
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <h6>사장님 댓글</h6>
+                            <p class="mb-0">{{ review.comment.content }}</p>
+                            <small class="text-muted">{{ review.comment.created_at|date:"Y년 m월 d일" }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요!</p>
                 {% endfor %}
-
             </div>
-        {% empty %}
-             <p class="text-center text-muted mt-4">사장님이 메뉴를 준비 중입니다. 잠시만 기다려주세요!</p>
-        {% endfor %}
 
+            <hr class="my-4">
+
+            <h4>리뷰 남기기</h4>
+            {% if user.is_authenticated %}
+                <form action="{% url 'restaurants:review_create' restaurant.pk %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_rating" class="form-label">별점</label>
+                        {{ review_form.rating }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_content" class="form-label">내용</label>
+                        {{ review_form.content }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_image" class="form-label">사진 첨부</label>
+                        {{ review_form.image }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">리뷰 등록</button>
+                </form>
+            {% else %}
+                <p><a href="{% url 'accounts:login' %}?next={{ request.path }}">로그인</a> 후 리뷰를 작성할 수 있습니다.</p>
+            {% endif %}
+        </div>
     </div>
 </div>
-<hr>
 
-
-{% comment %} ... 이전 코드 (식당 정보, 메뉴 등) ... {% endcomment %}
-<div class="container mt-4">
-    <h3>⭐ 방문자 리뷰 ({{ restaurant.review_count }})</h3>
-    <div class="d-flex align-items-center mb-3">
-        <span class="badge bg-primary me-2">⭐ {{ restaurant.rating|floatformat:1 }}</span>
-    </div>
-
-    <p class="lead">{{ restaurant.notice }}</p>
-    <hr>
-    
-    {% comment %} 리뷰 목록 보여주기 {% endcomment %}
-    <div class="list-group mt-3">
-        {% for review in reviews %}
-            <div class="list-group-item list-group-item-action flex-column align-items-start">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">{{ review.user.username }}</h5>
-                    <small>별점: {{ review.rating }} / 5.0</small>
-                </div>
-                <p class="mb-1">{{ review.content }}</p>
-                {% if review.image %}
-                    <img src="{{ review.image.url }}" alt="리뷰 사진" class="img-fluid rounded mt-2" style="max-height: 200px;">
-                {% endif %}
-                <small class="text-muted">{{ review.created_at|date:"Y년 m월 d일" }}</small>
-                
-                {% comment %} 사장님 댓글 보여주기 {% endcomment %}
-                {% if review.comment %}
-                <div class="mt-3 p-3 bg-light rounded">
-                    <h6>사장님 댓글</h6>
-                    <p class="mb-0">{{ review.comment.content }}</p>
-                    <small class="text-muted">{{ review.comment.created_at|date:"Y년 m월 d일" }}</small>
-                </div>
-                {% endif %}
-            </div>
-        {% empty %}
-            <p>아직 작성된 리뷰가 없습니다. 첫 리뷰를 남겨주세요!</p>
-        {% endfor %}
-    </div>
-
-    <hr class="my-4">
-
-    {% comment %} 리뷰 작성 폼 {% endcomment %}
-    <h4>리뷰 남기기</h4>
-    
-    {% if user.is_authenticated %}
-        <form action="{% url 'restaurants:review_create' restaurant.pk %}" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            <div class="mb-3">
-                <label for="id_rating" class="form-label">별점</label>
-                {{ review_form.rating }}
-            </div>
-            <div class="mb-3">
-                <label for="id_content" class="form-label">내용</label>
-                {{ review_form.content }}
-            </div>
-            <div class="mb-3">
-                <label for="id_image" class="form-label">사진 첨부</label>
-                {{ review_form.image }}
-            </div>
-            
-            <button type="submit" class="btn btn-primary">리뷰 등록</button>
-        </form>
-    {% else %}
-        <p><a href="{% url 'accounts:login' %}?next={{ request.path }}">로그인</a> 후 리뷰를 작성할 수 있습니다.</p>
-    {% endif %}
-
-</div>
-
-<hr>
-
-{% comment %} 장바구니와 주문 버튼이 표시될 영역 {% endcomment %}
-<div class="cart-section mt-5 p-3 border rounded">
+<!-- 장바구니 (화면 하단에 고정될 수 있도록 스타일링 필요 시 추가) -->
+<div class="container sticky-bottom bg-light p-3 border-top">
     <h3>🛒 장바구니</h3>
     <div id="cart-items">
         <p>장바구니가 비어 있습니다.</p>
     </div>
-    <div class="text-end mt-3">
+    <hr>
+    <div class="text-end">
         <h4>총 주문 금액: <span id="total-price">0</span>원</h4>
         <button id="order-btn" class="btn btn-success btn-lg">주문하기</button>
     </div>
 </div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+
 <script>
-    // 1. 장바구니 데이터와 필요한 HTML 요소들을 변수에 저장합니다.
-    const cart = {}; // 장바구니 데이터를 저장할 객체
-    const menuList = document.querySelector('.menu-list');
-    const cartItemsContainer = document.querySelector('#cart-items');
-    const totalPriceEl = document.querySelector('#total-price');
-    const orderBtn = document.querySelector('#order-btn');
-
-    // 2. 메뉴 '담기' 버튼에 대한 이벤트 리스너를 설정합니다. (이벤트 위임 사용)
-    menuList.addEventListener('click', function(event) {
-        // 클릭된 요소가 '담기' 버튼('.add-to-cart-btn')이 아니면 함수를 종료합니다.
-        if (!event.target.classList.contains('add-to-cart-btn')) {
-            return;
+    // Function to get CSRF token (uncomment in production)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
         }
-
-        const btn = event.target;
-        const menuId = btn.dataset.menuId;
-        const menuName = btn.dataset.menuName;
-        const menuPrice = parseInt(btn.dataset.menuPrice);
-
-        // 장바구니(cart) 객체에 메뉴가 이미 있는지 확인합니다.
-        if (cart[menuId]) {
-            // 이미 있으면 수량만 1 증가시킵니다.
-            cart[menuId].quantity += 1;
-        } else {
-            // 없으면 새로운 메뉴 정보를 추가합니다.
-            cart[menuId] = {
-                name: menuName,
-                price: menuPrice,
-                quantity: 1,
-            };
-        }
-
-        // 장바구니 UI를 최신 상태로 업데이트합니다.
-        updateCartUI();
-    });
-
-    // 3. 장바구니 화면(UI)을 업데이트하는 함수
-    function updateCartUI() {
-        cartItemsContainer.innerHTML = ''; // 장바구니 목록을 초기화합니다.
-        let totalPrice = 0;
-
-        // 장바구니가 비어있는지 확인합니다.
-        if (Object.keys(cart).length === 0) {
-            cartItemsContainer.innerHTML = '<p>장바구니가 비어 있습니다.</p>';
-            totalPriceEl.textContent = 0;
-            return; // 함수를 종료합니다.
-        }
-
-        // 장바구니에 담긴 각 메뉴에 대해 HTML을 생성하고 총액을 계산합니다.
-        for (const menuId in cart) {
-            const item = cart[menuId];
-            totalPrice += item.price * item.quantity;
-
-            // 각 메뉴 아이템을 표시할 HTML 요소를 생성합니다.
-            const itemEl = document.createElement('div');
-            itemEl.classList.add('d-flex', 'justify-content-between', 'my-2');
-            itemEl.innerHTML = `
-                <span>${item.name} x ${item.quantity}</span>
-                <span>${(item.price * item.quantity).toLocaleString()}원</span>
-            `;
-            cartItemsContainer.appendChild(itemEl); // 생성된 요소를 장바구니 목록에 추가합니다.
-        }
-
-        // 계산된 총 주문 금액을 화면에 표시합니다.
-        totalPriceEl.textContent = totalPrice.toLocaleString();
+        return cookieValue;
     }
+    const csrftoken = getCookie('csrftoken');
 
-    // 4. '주문하기' 버튼 클릭 시 동작을 정의합니다.
-    orderBtn.addEventListener('click', function() {
-        if (Object.keys(cart).length === 0) {
-            alert('장바구니에 메뉴를 담아주세요!');
-            return;
-        }
+    document.addEventListener('DOMContentLoaded', function() {
+        const cart = {};
 
-        // 백엔드로 전송할 데이터 형식을 만듭니다.
-        const cartItemsForBackend = Object.keys(cart).map(menuId => {
-            return {
-                menu_id: menuId,
-                quantity: cart[menuId].quantity,
-                options: {} // (옵션 기능은 추후 구현)
-            };
+        const menuListContainer = document.querySelector('.menu-list');
+        const cartItemsContainer = document.querySelector('#cart-items');
+        const totalPriceEl = document.querySelector('#total-price');
+        const orderBtn = document.querySelector('#order-btn');
+        // const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        menuListContainer.addEventListener('click', function(event) {
+            if (!event.target.classList.contains('add-to-cart-btn')) {
+                return;
+            }
+
+            const btn = event.target;
+            const menuId = btn.dataset.menuId;
+            const menuName = btn.dataset.menuName;
+            const menuPrice = parseInt(btn.dataset.menuPrice);
+
+            if (cart[menuId]) {
+                cart[menuId].quantity += 1;
+            } else {
+                cart[menuId] = {
+                    name: menuName,
+                    price: menuPrice,
+                    quantity: 1,
+                };
+            }
+
+            updateCartUI();
         });
 
-        const dataToSend = {
-            restaurant_pk: "{{ restaurant.pk }}",
-            cart_items: cartItemsForBackend,
-        };
+        function updateCartUI() {
+            cartItemsContainer.innerHTML = '';
+            let totalPrice = 0;
 
-        // CSRF 토큰을 가져옵니다.
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        // fetch API를 사용하여 서버에 주문 데이터를 전송합니다.
-        fetch("{% url 'restaurants:order_create' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken,
-                'X-Requested-With': 'XMLHttpRequest', // AJAX 요청임을 명시
-            },
-            body: JSON.stringify(dataToSend)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('주문이 성공적으로 완료되었습니다!');
-                window.location.href = data.redirect_url; // 주문 완료 페이지로 이동
-            } else {
-                alert('주문에 실패했습니다: ' + data.error);
+            if (Object.keys(cart).length === 0) {
+                cartItemsContainer.innerHTML = '<p>장바구니가 비어 있습니다.</p>';
+                totalPriceEl.textContent = '0';
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('오류가 발생했습니다. 다시 시도해주세요.');
+
+            const ul = document.createElement('ul');
+            ul.classList.add('list-group');
+
+            for (const menuId in cart) {
+                const item = cart[menuId];
+                totalPrice += item.price * item.quantity;
+
+                const li = document.createElement('li');
+                li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                li.innerHTML = `
+                    <div>
+                        ${item.name}
+                        <br>
+                        <small class="text-muted">${item.price.toLocaleString()}원 x ${item.quantity}</small>
+                    </div>
+                    <div>
+                        <span class="fw-bold me-3">${(item.price * item.quantity).toLocaleString()}원</span>
+                        <button class="btn btn-sm btn-outline-danger remove-from-cart-btn" data-menu-id="${menuId}">×</button>
+                    </div>
+                `;
+                ul.appendChild(li);
+            }
+            cartItemsContainer.appendChild(ul);
+            totalPriceEl.textContent = totalPrice.toLocaleString();
+        }
+
+        cartItemsContainer.addEventListener('click', function(event) {
+            if (!event.target.classList.contains('remove-from-cart-btn')) {
+                return;
+            }
+            const menuId = event.target.dataset.menuId;
+            if (cart[menuId]) {
+                delete cart[menuId];
+                updateCartUI();
+            }
+        });
+
+        orderBtn.addEventListener('click', function() {
+            if (Object.keys(cart).length === 0) {
+                alert('장바구니에 메뉴를 담아주세요!');
+                return;
+            }
+
+            const cartItemsForBackend = Object.keys(cart).map(menuId => {
+                return {
+                    menu_id: menuId,
+                    quantity: cart[menuId].quantity,
+                    options: {} // 옵션 기능 추가 시 이 부분 확장
+                };
+            });
+
+            const dataToSend = {
+                restaurant_pk: "{{ restaurant.pk }}",
+                cart_items: cartItemsForBackend,
+            };
+
+            fetch("{% url 'orders:order_api_create' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify(dataToSend)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('주문이 성공적으로 접수되었습니다.');
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert('주문 실패: ' + (data.error || '알 수 없는 오류'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('주문 처리 중 오류가 발생했습니다.');
+            });
         });
     });
 </script>
-</body>
+{% endblock food_section %}

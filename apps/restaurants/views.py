@@ -14,11 +14,12 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 
-from .models import Restaurant, Menu
+from .models import Restaurant, Menu, MenuCategory
 from apps.orders.models import Order, OrderItem
 from .forms import ReviewForm
 # 'accounts' 앱의 Address 모델을 가져옵니다. 앱 구조에 맞게 수정이 필요할 수 있습니다.
 from apps.accounts.models import Address
+
 
 def post_list(request):
     return render(request, template_name='main/base.html')
@@ -26,14 +27,43 @@ def post_list(request):
 
 # Create your views here.
 class PostListView(ListView):
-    model = Post
+    model = Restaurant
     template_name = 'main/post_list.html'
+    context_object_name = 'restaurants'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        categories = Restaurant.CATEGORY_CHOICES
+        user = self.request.user
+        user_address = ""
+        if user.is_authenticated:
+            user_address = user.address
+        restaurants_data = list(Restaurant.objects.all().values('name', 'address'))
+        context['user_address'] = user_address
+        context['restaurants_data'] = restaurants_data
 
+        # 전체 6개 가져오기 (최신 순으로 변경 원하면 order_by('-id'))
+        restaurants_6 = Restaurant.objects.all()[:6]
+        exclude_ids = [r.id for r in restaurants_6]
 
-class MainDetailView(TemplateView):
-    #model = Post
+        # 카테고리별 6개씩, 전체 6개는 제외
+        category_restaurants = {}
+        for code, name in categories:
+            category_restaurants[code] = Restaurant.objects.filter(category=code).exclude(id__in=exclude_ids)[:6]
+
+        context['categories'] = categories
+        context['restaurants'] = restaurants_6
+        context['category_restaurants'] = category_restaurants
+        return context
+class MainDetailView(ListView):
+    model = Restaurant
     template_name = 'main/post_main_detail.html'
+    context_object_name = 'restaurants'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Restaurant.CATEGORY_CHOICES  # 카테고리 목록 추가
+        return context
     # 특정 상세 페이지가 아니라서 이렇게만 하면 이동
 
 # 상세 페이지
@@ -43,8 +73,22 @@ class RestaurantListView(ListView):
     """
     model = Restaurant
     template_name = 'restaurants/restaurant_list.html'
+    #template_name = 'main/post_list.html'
     context_object_name = 'restaurants'
     paginate_by = 10  # 한 페이지에 10개의 가게를 보여줍니다.
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # request 객체는 self.request 로 접근해야 합니다.
+        user = self.request.user
+        restaurants = Restaurant.objects.all()
+        context['restaurants'] = restaurants
+        return context
+
+
+
+
+# 해당 페이지로 데이터를 가져오게 작성 필요
 
 
 class RestaurantDetailView(DetailView):
@@ -57,8 +101,11 @@ class RestaurantDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        categories = self.object.menu_categories.all().prefetch_related('menus')
-        context['menu_categories'] = categories
+        restaurant = get_object_or_404(Restaurant, pk=self.kwargs['pk'])
+        menu_categories = MenuCategory.objects.filter(restaurant=restaurant).prefetch_related('menus')
+
+        context['menu_categories'] = menu_categories
+        context['restaurant'] = restaurant
         # 리뷰 작성 폼을 컨텍스트에 추가
         context['review_form'] = ReviewForm()
         # 해당 가게의 리뷰 목록을 컨텍스트에 추가

@@ -87,3 +87,34 @@ $(".client_owl-carousel").owlCarousel({
         }
     }
 });
+$(window).on('load', function() {
+  var $grid = $(".grid").isotope({
+    itemSelector: ".filter-item",
+    layoutMode: 'fitRows'
+  });
+
+  function showLimitedItems(filter) {
+    var $items;
+    if (filter === '*' || filter === '.all') {
+      $items = $grid.find('.filter-item');
+    } else {
+      $items = $grid.find(filter);
+    }
+    $items.hide().slice(0, 6).show();
+    $grid.isotope('layout');
+  }
+
+  // 초기에는 전체 6개만 보여주기
+  showLimitedItems('*');
+
+  $('.filters_menu li').on('click', function () {
+    $('.filters_menu li').removeClass('active');
+    $(this).addClass('active');
+
+    var filterValue = $(this).attr('data-filter');
+    if (filterValue === '*') filterValue = '.all';
+
+    $grid.isotope({ filter: filterValue });
+    showLimitedItems(filterValue);
+  });
+});

@@ -1,11 +1,19 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone  # timezone.now() 사용을 위해 추가
-from django.db.models import Avg
+
 from apps.accounts.models import Address
 
 
 class Restaurant(models.Model):
+    CATEGORY_CHOICES = [
+        ('korea', '한식'),
+        ('china', '중식'),
+        ('japan', '일식'),
+        ('usa', '양식'),
+        ('dessert', '디저트'),
+    ]
+
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='restaurants/', blank=True, null=True)
     phone = models.CharField(max_length=20)
@@ -20,6 +28,7 @@ class Restaurant(models.Model):
     review_count = models.PositiveIntegerField(default=0)
     is_open = models.BooleanField(default=True)
     owner_notice = models.TextField(blank=True, null=True)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
