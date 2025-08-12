@@ -86,9 +86,12 @@ class CustomUser(AbstractUser):
         from django.db.models import Count
         from apps.orders.models import Order
         status_counts = {status_name: 0 for status_value, status_name in Order.ORER_STATUS}
-        get_order_status_name = {status_value: status_name for status_value, status_name in Order.ORER_STATUS}
+        get_order_status_name = {status_name: status_name for status_value, status_name in Order.ORER_STATUS}
         user_orders_counts = Order.objects.filter(user=self).values('status').annotate(count=Count('status'))
+        print(user_orders_counts)
+        print(f'get_order_status_name : {get_order_status_name}')
         for item in user_orders_counts:
+            print(item)   
             status_counts[get_order_status_name[item['status']]] = item['count']
         return status_counts
 
