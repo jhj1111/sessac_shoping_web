@@ -1,67 +1,160 @@
-# migrate
-- db table 생성
-  - restaurants models 개별 생성
-- 생성 이후 migrate
-```bash
-python manage.py makemigrations restaurants
-```
+# `restaurants` 앱
 
-# class 다이아그램
+가게, 메뉴, 리뷰 등 서비스의 핵심 도메인과 관련된 데이터를 관리하는 앱입니다.
+
+## 주요 기능
+
+- 가게 및 메뉴 정보 관리
+- 카테고리별, 검색어별 가게 목록 조회
+- 가게 상세 정보(메뉴, 영업 정보, 리뷰) 조회
+- 리뷰 및 사장님 댓글 작성/관리
+
+## ERD (Entity-Relationship Diagram)
+
 ```mermaid
-graph TB
-    subgraph "🏪 2. restaurants App"
-        subgraph "Models"
-            B1[Restaurant Model<br/>- name: CharField<br/>- phone: CharField<br/>- address: TextField<br/>- latitude: DecimalField<br/>- longitude: DecimalField<br/>- category: CharField<br/>- operating_hours: JSONField<br/>- minimum_order: PositiveIntegerField<br/>- delivery_fee: PositiveIntegerField<br/>- rating: DecimalField<br/>- review_count: PositiveIntegerField<br/>- is_open: BooleanField<br/>- owner_notice: TextField<br/><br/>Methods:<br/>+ calculate_distance<br/>+ is_currently_open<br/>+ update_rating]
-            B2[Menu Model<br/>- restaurant: ForeignKey<br/>- name: CharField<br/>- description: TextField<br/>- price: PositiveIntegerField<br/>- image: ImageField<br/>- category: CharField<br/>- is_popular: BooleanField<br/>- is_available: BooleanField<br/>- created_at: DateTimeField<br/><br/>Methods:<br/>+ get_formatted_price<br/>+ toggle_availability]
-            B3[MenuOption Model<br/>- menu: ForeignKey<br/>- name: CharField<br/>- type: CharField<br/>- additional_price: IntegerField<br/>- is_required: BooleanField<br/>- choices: JSONField<br/><br/>Methods:<br/>+ get_choices_list<br/>+ calculate_price]
-        end
-        
-        subgraph "Views"
-            B4["RestaurantListView<br> (CBV - ListView)"<br/>+ get_queryset: 필터링<br/>+ get_context_data]
-            B5["RestaurantDetailView<br> (CBV - DetailView)"<br/>+ get_object<br/>+ get_context_data]
-            B6["MenuListView<br> (CBV - ListView)"<br/>+ get_queryset<br/>+ filter_by_category]
-            B7["SearchRestaurantView<br> (CBV - View)"<br/>+ get: 검색결과<br/>+ apply_filters]
-        end
-        
-        subgraph "Managers"
-            B8[RestaurantManager<br/>+ nearby: 근처음식점<br/>+ by_category<br/>+ open_now]
-            B9[MenuManager<br/>+ available_only<br/>+ by_popularity<br/>+ by_price_range]
-        end
-    end
+erDiagram
+    RESTAURANT {
+        int id PK
+        string name
+        string address
+        decimal rating
+        int review_count
+    }
+
+    MENU_CATEGORY {
+        int id PK
+        int restaurant_id FK
+        string name
+    }
+
+    MENU {
+        int id PK
+        int category_id FK
+        string name
+        int price
+    }
+
+    REVIEW {
+        int id PK
+        int restaurant_id FK
+        int user_id FK
+        decimal rating
+        text content
+    }
+
+    REVIEW_COMMENT {
+        int id PK
+        int review_id FK
+        text content
+    }
+
+    RESTAURANT ||--|{ MENU_CATEGORY : "has"
+    MENU_CATEGORY ||--|{ MENU : "contains"
+    RESTAURANT ||--o{ REVIEW : "has"
+    CUSTOM_USER ||--o{ REVIEW : "writes"
+    REVIEW ||--|| REVIEW_COMMENT : "has comment for"
 ```
 
-## 🚀 요소별 역할 및 기능
+## 클래스 다이어그램 (Class Diagram)
 
-### Models
-- **Restaurant (`models.Model`)**: 음식점의 기본 정보를 저장하는 핵심 모델입니다. 이름, 주소, 연락처, 영업 시간, 최소 주문 금액, 배달비, 평점 등 음식점 운영에 필요한 모든 정보를 관리합니다.
-- **Menu (`models.Model`)**: 각 음식점에서 제공하는 개별 메뉴 항목을 나타냅니다. 메뉴 이름, 설명, 가격, 이미지, 카테고리, 인기 메뉴 여부, 판매 가능 여부 등의 정보를 포함합니다.
-- **MenuOption (`models.Model`)**: 메뉴에 대한 추가 옵션(예: 사이즈, 추가 토핑)을 정의합니다. 옵션 이름, 타입, 추가 가격, 필수 선택 여부, 선택지 목록 등을 관리합니다.
+```mermaid
+classDiagram
+    class Restaurant {
+        +CharField name
+        +TextField address
+        +JSONField operating_hours
+        +DecimalField rating
+        +PositiveIntegerField review_count
+        +update_review_statistics()
+    }
 
-### Views
-- **RestaurantListView (`ListView`)**: 여러 음식점 목록을 표시하고, 필터링 및 정렬 기능을 제공합니다.
-- **RestaurantDetailView (`DetailView`)**: 특정 음식점의 상세 정보를 표시하며, 해당 음식점의 메뉴 목록 등을 함께 보여줍니다.
-- **MenuListView (`ListView`)**: 특정 음식점의 메뉴 목록을 표시하며, 카테고리별 필터링 등을 지원합니다.
-- **SearchRestaurantView (`View`)**: 사용자의 검색어에 따라 음식점을 검색하고, 검색 결과에 대한 필터링 및 정렬 기능을 제공합니다.
+    class MenuCategory {
+        +ForeignKey restaurant
+        +CharField name
+    }
 
-### Managers
-- **RestaurantManager (`models.Manager`)**: `Restaurant` 모델에 대한 커스텀 쿼리셋 메서드를 제공합니다. 예를 들어, 특정 위치 근처의 음식점을 찾거나, 카테고리별로 필터링하거나, 현재 영업 중인 음식점을 조회하는 등의 기능을 수행합니다.
-- **MenuManager (`models.Manager`)**: `Menu` 모델에 대한 커스텀 쿼리셋 메서드를 제공합니다. 예를 들어, 현재 판매 가능한 메뉴만 조회하거나, 인기순으로 정렬하거나, 가격 범위별로 메뉴를 필터링하는 등의 기능을 수행합니다.
+    class Menu {
+        +ForeignKey category
+        +CharField name
+        +PositiveIntegerField price
+        +BooleanField is_popular
+    }
 
-## 📖 주요 함수 및 메서드 상세
+    class Review {
+        +ForeignKey restaurant
+        +ForeignKey user
+        +DecimalField rating
+        +TextField content
+    }
 
-### Model Methods
-- **Restaurant.calculate_distance**: 주어진 위도/경도와 해당 음식점 간의 거리를 계산하여 반환합니다.
-- **Restaurant.is_currently_open**: 현재 시간이 음식점의 영업 시간 내에 포함되는지 여부를 확인하여 반환합니다.
-- **Restaurant.update_rating**: 새로운 리뷰가 추가되거나 기존 리뷰가 수정될 때 음식점의 평균 평점과 리뷰 수를 업데이트합니다.
-- **Menu.get_formatted_price**: 메뉴 가격을 통화 형식에 맞게 포맷하여 반환합니다.
-- **Menu.toggle_availability**: 메뉴의 판매 가능 여부(`is_available`) 상태를 토글합니다.
-- **MenuOption.get_choices_list**: `choices` JSON 필드에 저장된 선택지 목록을 파이썬 리스트 형태로 파싱하여 반환합니다.
-- **MenuOption.calculate_price**: 선택된 옵션에 따른 최종 가격을 계산하여 반환합니다.
+    class ReviewComment {
+        +OneToOneField review
+        +TextField content
+    }
 
-### Manager Methods
-- **RestaurantManager.nearby**: 특정 지점(위도, 경도)으로부터 일정 거리 이내에 있는 음식점들을 조회합니다.
-- **RestaurantManager.by_category**: 특정 카테고리에 속하는 음식점들을 필터링하여 반환합니다.
-- **RestaurantManager.open_now**: 현재 영업 중인 음식점들만 필터링하여 반환합니다.
-- **MenuManager.available_only**: 현재 판매 가능한(`is_available=True`) 메뉴 항목들만 필터링하여 반환합니다.
-- **MenuManager.by_popularity**: 메뉴 항목들을 인기순(예: 주문 수, 리뷰 수 등)으로 정렬하여 반환합니다.
-- **MenuManager.by_price_range**: 특정 가격 범위 내에 있는 메뉴 항목들을 필터링하여 반환합니다.
+    Restaurant "1" -- "*" MenuCategory : has
+    MenuCategory "1" -- "*" Menu : contains
+    Restaurant "1" -- "*" Review : has
+    CustomUser "1" -- "*" Review : writes
+    Review "1" -- "1" ReviewComment : has
+```
+
+## 주요 모델 (Models)
+
+- `Restaurant`: 가게의 핵심 정보를 담고 있는 모델입니다. (이름, 주소, 평점, 최소주문금액, 배달비 등)
+- `MenuCategory`: 메뉴를 그룹화하는 카테고리 모델입니다. (예: 대표 메뉴, 사이드 메뉴)
+- `Menu`: 개별 메뉴의 정보를 관리합니다. `MenuCategory`에 속합니다.
+- `Review`: 사용자가 가게에 대해 작성한 리뷰입니다. `Restaurant` 및 `CustomUser`와 연결됩니다.
+- `ReviewComment`: 사장님이 `Review`에 대해 작성하는 댓글입니다. `Review`와 1:1 관계를 가집니다.
+- `OptionGroup` / `Option`: 메뉴에 대한 선택 옵션(예: 맵기 조절, 사이즈 변경)을 관리합니다.
+
+## 주요 뷰 (Views)
+
+- `PostListView (ListView)`: 메인 페이지에 보여질 가게 목록을 처리합니다. 검색어가 없을 경우 일부 가게만 보여주고, 카테고리별 가게 목록도 함께 제공합니다.
+- `MainDetailView (ListView)`: 검색 결과 페이지입니다. 검색어(`q`)를 기반으로 가게를 필터링하여 목록을 보여줍니다.
+- `RestaurantDetailView (DetailView)`: 특정 가게의 상세 페이지입니다. 탭(메뉴, 정보, 리뷰) 형식으로 구성되며, 메뉴 정보, 리뷰 목록, 리뷰 작성 폼 등을 제공합니다.
+- `ReviewCreateView (CreateView)`: 사용자가 리뷰를 작성하고 저장하는 기능을 처리합니다.
+- `comment_create (function-based view)`: 사장님이 리뷰에 대한 댓글을 작성하고 저장하는 기능을 처리합니다.
+
+## 뷰 클래스 다이어그램 (Views Class Diagram)
+
+```mermaid
+classDiagram
+    class View {
+        <<Abstract>>
+    }
+    class ListView {
+        <<Abstract>>
+    }
+    class DetailView {
+        <<Abstract>>
+    }
+    class CreateView {
+        <<Abstract>>
+    }
+    class LoginRequiredMixin {
+        <<Mixin>>
+    }
+
+    ListView <|-- PostListView
+    ListView <|-- MainDetailView
+    ListView <|-- RestaurantListView
+    DetailView <|-- RestaurantDetailView
+    LoginRequiredMixin <|-- ReviewCreateView
+    CreateView <|-- ReviewCreateView
+    LoginRequiredMixin <|-- UserOrderListView
+    ListView <|-- UserOrderListView
+    LoginRequiredMixin <|-- OrderDetailView
+    DetailView <|-- OrderDetailView
+    LoginRequiredMixin <|-- OrderCreateView
+    View <|-- OrderCreateView
+
+    class PostListView
+    class MainDetailView
+    class RestaurantListView
+    class RestaurantDetailView
+    class ReviewCreateView
+    class UserOrderListView
+    class OrderDetailView
+    class OrderCreateView
+```
