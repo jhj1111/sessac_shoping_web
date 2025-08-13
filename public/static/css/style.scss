@@ -115,27 +115,27 @@ a:focus {
   box-shadow: none;
 }
 
-/*header section*/
-.hero_area {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.bg-box {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
+///*header section*/
+//.hero_area {
+//  position: relative;
+//  min-height: 100vh;
+//  display: flex;
+//  flex-direction: column;
+//}
+//
+//.bg-box {
+//  position: absolute;
+//  top: 0;
+//  left: 0;
+//  width: 100%;
+//  height: 100%;
+//
+//  img {
+//    width: 100%;
+//    height: 100%;
+//    object-fit: cover;
+//  }
+//}
 
 .sub_page {
   .hero_area {
@@ -325,7 +325,7 @@ a:focus {
   display: flex;
   align-items: center;
   position: relative;
-  padding: 45px 0 75px 0;
+  padding: 45px 0 45px 0;
 
   .row {
     align-items: center;
@@ -351,7 +351,7 @@ a:focus {
     }
 
     a {
-      @include hero_btn($primary1, $white, 10px, 45px, 45px);
+      @include hero_btn($primary1: #ffbe33, 10px, 45px, 45px);
       margin-top: 10px;
     }
 
@@ -360,6 +360,7 @@ a:focus {
   .img-box {
     img {
       width: 100%;
+      height: 100vh;
     }
 
   }
@@ -802,7 +803,7 @@ a:focus {
       margin-top: 10px;
       border: none;
       text-transform: uppercase;
-      @include hero_btn($primary1, $white, 10px, 55px, 0px);
+      @include hero_btn($primary1: #ffbe33, 10px, 55px, 0px);
     }
   }
 
