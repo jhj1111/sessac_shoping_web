@@ -1,124 +1,317 @@
-# 파일 트리
-## requirements.txt
-- pip 패키지 다운로드
-```bash
-pip install -r requirements.txt
+# Sessac Shopping Web Project
+
+이 프로젝트는 Django를 기반으로 한 온라인 음식 주문 및 배달 서비스 웹 애플리케이션입니다.
+
+## 디렉토리 구조
+
+-   `manage.py`: Django 프로젝트의 핵심 관리 스크립트입니다. 서버 실행, 데이터베이스 마이그레이션, 앱 생성 등 다양한 커맨드를 실행하는 데 사용됩니다.
+-   `requirements.txt`: 프로젝트에 필요한 Python 패키지들의 목록입니다. `pip install -r requirements.txt` 명령어로 모든 의존성을 한 번에 설치할 수 있습니다.
+-   `config/`: 프로젝트의 주 설정 파일이 위치하는 디렉토리입니다.
+    -   `settings.py`: 데이터베이스, 설치된 앱, 정적 파일 경로, 미디어 파일 경로 등 프로젝트의 모든 설정을 포함합니다.
+    -   `urls.py`: 프로젝트의 최상위 URL 라우팅을 관리합니다. 각 앱의 `urls.py`를 이곳에서 포함(include)합니다.
+    -   `wsgi.py` / `asgi.py`: 웹 서버와 Django 애플리케이션을 연결하는 WSGI/ASGI 인터페이스 설정 파일입니다.
+-   `apps/`: 프로젝트의 기능별 애플리케이션이 위치하는 메인 디렉토리입니다. 각 앱은 독립적인 기능을 수행하며 MVC(MTV) 패턴에 따라 구성됩니다.
+    -   `accounts`: 사용자 계정(회원가입, 로그인) 및 프로필 관리를 담당합니다.
+    -   `restaurants`: 가게, 메뉴, 리뷰 등 서비스의 핵심 도메인을 관리합니다.
+    -   `orders`: 장바구니, 주문, 결제 로직을 처리합니다.
+    -   `mypage`: 로그인한 사용자의 개인화된 페이지(주문 내역, 정보 수정 등)를 담당합니다.
+-   `public/`: 정적 파일(`static`) 및 사용자가 업로드하는 미디어 파일(`media`)을 관리하는 디렉토리입니다. 웹 서버(Nginx 등)가 직접 이 디렉토리의 파일들을 서빙하도록 설정할 수 있습니다.
+-   `templates/`: 사용자가 보게 될 HTML 파일들이 위치하는 디렉토리입니다. Django 템플릿 언어를 사용하여 동적으로 데이터를 렌더링합니다.
+
+## 전체 ERD (Entity-Relationship Diagram)
+
+프로젝트의 모든 핵심 모델 간의 관계를 나타냅니다.
+
+```mermaid
+erDiagram
+    CUSTOM_USER {
+        int id PK
+        string username
+        string grade
+    }
+    ADDRESS {
+        int id PK
+        int user_id FK
+        string full_address
+    }
+    RESTAURANT {
+        int id PK
+        string name
+        decimal rating
+    }
+    MENU_CATEGORY {
+        int id PK
+        int restaurant_id FK
+        string name
+    }
+    MENU {
+        int id PK
+        int category_id FK
+        string name
+        int price
+    }
+    REVIEW {
+        int id PK
+        int restaurant_id FK
+        int user_id FK
+        decimal rating
+    }
+    REVIEW_COMMENT {
+        int id PK
+        int review_id FK
+        text content
+    }
+    CART {
+        int id PK
+        int user_id FK
+    }
+    CART_ITEM {
+        int id PK
+        int cart_id FK
+        int menu_id FK
+    }
+    "ORDER" {
+        int id PK
+        int user_id FK
+        string status
+    }
+    ORDER_ITEM {
+        int id PK
+        int order_id FK
+        int menu_id FK
+    }
+
+    CUSTOM_USER ||--o{ ADDRESS : "has"
+    CUSTOM_USER ||--o{ REVIEW : "writes"
+    CUSTOM_USER ||--|| CART : "has"
+    CUSTOM_USER ||--o{ "ORDER" : "places"
+
+    RESTAURANT ||--|{ MENU_CATEGORY : "has"
+    RESTAURANT ||--o{ REVIEW : "gets"
+
+    MENU_CATEGORY ||--|{ MENU : "contains"
+
+    REVIEW ||--|| REVIEW_COMMENT : "has"
+
+    CART ||--|{ CART_ITEM : "contains"
+    "ORDER" ||--|{ ORDER_ITEM : "contains"
+
+    MENU }o--|| CART_ITEM : "selected in"
+    MENU }o--|| ORDER_ITEM : "ordered in"
 ```
-## config
-- django 상위 페이지
 
-## public
-- static/media 폴더
+## 전체 클래스 다이어그램 (Class Diagram)
 
-## apps
-- 앱 생성 디렉토리
+프로젝트의 주요 클래스(모델)와 그 관계, 주요 메서드를 나타냅니다.
 
-# Class Diagram
 ```mermaid
 classDiagram
-    class User {
-        - name: String
-        - createDate: Date
-        - birthday: Date
-        - gender: String
-        - grade: String
-        - recentView: List<Item>
-        - pointBalance: Double
-        + login()
-        + logout()
-        + register()
-        + withdraw()
+    class CustomUser {
+      +CharField address
+      +CharField grade
+      +get_order_status_counts()
     }
-    
-    class MyPage {
-        - orderHistory: List<Order>
-        - userComments: List<Comment>
-        - inquiries: List<Inquiry>
-        - notifications: List<String>
-        + viewOrderHistory()
-        + viewUserInfo()
-        + viewComments()
-        + viewInquiries()
-    }
-    
-    class Cart {
-        - items: List<Item>
-        - totalPrice: Double
-        - status: String
-        + addItem()
-        + removeItem()
-        + updateQuantity()
-    }
-    
-    class Order {
-        - orderList: List<Item>
-        - total: Double
-        - deliveryFee: Double
-        - deliveryStatus: String
-        - requestMessage: String
-        + placeOrder()
-        + cancelOrder()
-    }
-    
-    class Store {
-        - name: String
-        - address: String
-        - phoneNumber: String
-        - likes: Integer
-        - mapApi: Map
-        + viewMenu()
-        + getStoreInfo()
-    }
-    
-    class Item {
-        - name: String
-        - price: Double
-        - description: String
-    }
-    
-    class Comment {
-        - rating: Integer
-        - text: String
-        - author: User
-        + createComment()
-        + deleteComment()
-    }
-    
     class Address {
-        - street: String
-        - city: String
-        - zipCode: String
-        - isPrimary: Boolean
+      +ForeignKey user
+      +TextField full_address
     }
-    
-    class PaymentMethod {
-        - type: String
-        - maskedInfo: String
+    class Restaurant {
+      +CharField name
+      +DecimalField rating
+      +update_review_statistics()
     }
-    
-    class Coupon {
-        - name: String
-        - discountValue: Double
-        - expirationDate: Date
-        - isUsed: Boolean
+    class Menu {
+      +ForeignKey category
+      +CharField name
+      +PositiveIntegerField price
+    }
+    class Review {
+      +ForeignKey restaurant
+      +ForeignKey user
+      +DecimalField rating
+    }
+    class ReviewComment {
+      +OneToOneField review
+      +TextField content
+    }
+    class Cart {
+      +OneToOneField user
+      +group_items_by_restaurant()
+    }
+    class CartItem {
+      +ForeignKey cart
+      +ForeignKey menu
+      +PositiveIntegerField quantity
+    }
+    class Order {
+      +ForeignKey user
+      +CharField status
+      +group_items_by_restaurant()
+    }
+    class OrderItem {
+      +ForeignKey order
+      +ForeignKey menu
+      +PositiveIntegerField quantity
     }
 
-    User "1" -- "1" MyPage
-    User "1" -- "1..*" Order
-    User "1" -- "1" Cart
-    User "1" -- "0..*" Address
-    User "1" -- "0..*" PaymentMethod
-    User "1" -- "0..*" Coupon
+    CustomUser "1" -- "*" Address
+    CustomUser "1" -- "*" Review
+    CustomUser "1" -- "1" Cart
+    CustomUser "1" -- "*" Order
 
-    Cart "1" -- "*" Item
-    Order "1" -- "*" Item
-    Order "1" -- "1" Address
-    Order "1" -- "1" PaymentMethod
-    Order "1" -- "0..1" Coupon
+    Restaurant "1" -- "*" Review
+    Restaurant "1" -- "*" MenuCategory
 
-    Store "1" -- "*" Item
-    Store "1" -- "*" Comment
-    User "1" -- "*" Comment
+    MenuCategory "1" -- "*" Menu
+
+    Review "1" -- "1" ReviewComment
+
+    Cart "1" -- "*" CartItem
+    Order "1" -- "*" OrderItem
+
+    Menu "1" -- "*" CartItem
+    Menu "1" -- "*" OrderItem
+```
+
+# 파일트리
+```
+sessac_shoping_web
+├─ apps
+│  ├─ accounts
+│  │  ├─ admin.py
+│  │  ├─ apps.py
+│  │  ├─ forms.py
+│  │  ├─ models.py
+│  │  ├─ README.md
+│  │  ├─ urls.py
+│  │  ├─ views.py
+│  │  └─ __init__.py
+│  ├─ mypage
+│  │  ├─ admin.py
+│  │  ├─ apps.py
+│  │  ├─ models.py
+│  │  ├─ README.md
+│  │  ├─ tests.py
+│  │  ├─ urls.py
+│  │  ├─ views.py
+│  │  └─ __init__.py
+│  ├─ orders
+│  │  ├─ admin.py
+│  │  ├─ apps.py
+│  │  ├─ models.py
+│  │  ├─ README.md
+│  │  ├─ services.py
+│  │  ├─ tests.py
+│  │  ├─ urls.py
+│  │  ├─ views.py
+│  │  └─ __init__.py
+│  ├─ restaurants
+│  │  ├─ admin.py
+│  │  ├─ apps.py
+│  │  ├─ forms.py
+│  │  ├─ models.py
+│  │  ├─ README.md
+│  │  ├─ templatetags
+│  │  │  ├─ custom_filters.py
+│  │  │  └─ __init__.py
+│  │  ├─ tests.py
+│  │  ├─ urls.py
+│  │  ├─ views.py
+│  │  └─ __init__.py
+├─ config
+│  ├─ asgi.py
+│  ├─ settings.py
+│  ├─ urls.py
+│  ├─ wsgi.py
+│  └─ __init__.py
+├─ manage.py
+├─ public
+│  ├─ media
+│  │  ├─ restaurants
+│  │  │  └─ menu_images
+│  │  └─ review_images
+│  ├─ static
+│  │  ├─ accounts
+│  │  │  ├─ icon_bronze.png
+│  │  │  ├─ icon_goldpng.png
+│  │  │  ├─ icon_platinumpng.png
+│  │  │  └─ icon_silverpng.png
+│  │  ├─ css
+│  │  │  ├─ bootstrap.css
+│  │  │  ├─ font-awesome.min.css
+│  │  │  ├─ responsive.css
+│  │  │  ├─ style.css
+│  │  │  ├─ style.css.map
+│  │  │  └─ style.scss
+│  │  ├─ fonts
+│  │  │  ├─ fontawesome-webfont.ttf
+│  │  │  ├─ fontawesome-webfont.woff
+│  │  │  └─ fontawesome-webfont.woff2
+│  │  ├─ images
+│  │  │  ├─ favicon.png
+│  │  │  └─ hero-bg.jpg
+│  │  ├─ js
+│  │  │  ├─ bootstrap.js
+│  │  │  ├─ custom.js
+│  │  │  └─ jquery-3.4.1.min.js
+│  │  └─ no_image.jpg
+│  └─ __init__.py
+├─ README.md
+├─ requirements.txt
+├─ templates
+│  ├─ accounts
+│  │  ├─ home.html
+│  │  ├─ login.html
+│  │  ├─ mypage_orders.html
+│  │  ├─ my_review_list.html
+│  │  └─ register.html
+│  ├─ js
+│  │  ├─ cart_widget.js
+│  │  ├─ mypage-date-button-state.html
+│  │  └─ mypage_review_list.js
+│  ├─ main
+│  │  ├─ base.html
+│  │  ├─ footer.html
+│  │  ├─ nav.html
+│  │  ├─ post_list.html
+│  │  ├─ post_main_detail.html
+│  │  └─ widget.html
+│  ├─ mypage
+│  │  ├─ account_delete.html
+│  │  ├─ mypage_base.html
+│  │  ├─ mypage_main.html
+│  │  ├─ mypage_orders.html
+│  │  ├─ my_review_list.html
+│  │  ├─ nav.html
+│  │  ├─ password_change.html
+│  │  ├─ password_change_done.html
+│  │  └─ profile_edit.html
+│  ├─ orders
+│  │  ├─ cart_detail.html
+│  │  └─ order_form.html
+│  └─ restaurants
+│     ├─ order_detail.html
+│     ├─ order_list.html
+│     ├─ restaurant_detail.html
+│     └─ restaurant_list.html
+├─ 명세
+│  ├─ 기능명세
+│  │  ├─ image 1.png
+│  │  ├─ image 2.png
+│  │  ├─ 가게이미지.png
+│  │  ├─ 검색바.png
+│  │  ├─ 내비.png
+│  │  ├─ 메인_개요.png
+│  │  ├─ 배너.png
+│  │  ├─ 사이드바.png
+│  │  ├─ 전체_리스트.png
+│  │  ├─ 카테고리_선택_바.png
+│  │  └─ 페이지_선택바.png
+│  ├─ 기능명세.md
+│  └─ 시스템 아키텍쳐
+│     └─ 시스템아키텍쳐.png
+└─ 시스템 구성도.md
+
 ```
 
 # 결제 순서도
@@ -138,19 +331,6 @@ flowchart TD
     J --결제 성공--> K[주문 완료];
     K --> L[주문 내역 확인];
 ```
-순서도 설명:
-
-- 시작: 사용자가 메뉴를 선택합니다.
-
-- 의사 결정: 장바구니에서 메뉴를 수정할지, 바로 주문할지 결정합니다.
-
-- 주문 페이지: 배달 정보와 할인 정보를 입력하는 단계입니다.
-
-- 결제: 결제 수단과 정보를 입력하고 결제를 시도합니다.
- 
-- 분기점: 결제 성공 여부에 따라 다음 단계가 나뉩니다.
- 
-- 종료: 결제가 완료되면 주문 내역을 확인할 수 있습니다.
 
 # 결제 시퀀스 다이어그램
 ```mermaid
@@ -186,167 +366,3 @@ sequenceDiagram
         FrontEnd->>User: '결제 실패' 메시지 표시
     end
 ```
-시퀀스 다이어그램 설명:
-
-- 메뉴 선택: 사용자가 메뉴를 선택하면 프론트엔드가 백엔드에 장바구니 추가 요청을 보냅니다.
- 
-- 주문 생성: 주문하기 버튼을 누르면 백엔드에서 최종 금액을 계산하고 주문 정보를 준비합니다.
- 
-- 결제 요청: 프론트엔드가 결제 게이트웨이에 직접 결제를 요청하고, 그 결과를 받습니다.
- 
-- 결과 반영: 결제 성공 시, 백엔드에 최종 주문 완료를 알리고 데이터베이스에 상태를 업데이트합니다. 결제 실패 시, 사용자에게 실패 메시지를 바로 보여줍니다.
-
-
-```mermaid
-graph TB
-    %% 메인 시스템 구조
-    subgraph "🏠 메인 페이지"
-        A[배너 이벤트<br/>- 이미지 자동 롤링<br/>- 터치 시 상세 페이지 이동] 
-        B[추천/인기 음식점<br/>- 위치 기반 추천<br/>- 가게 정보 표시]
-        C[가게 검색<br/>- 검색 입력창<br/>- 검색 결과 출력]
-        D[음식점 카테고리<br/>- 한식/중식/일식/양식/디저트<br/>- 각 카테고리별 음식점 리스트]
-    end
-
-    subgraph "🎯 공통 UI 구성요소"
-        subgraph "📋 헤더"
-            E1[홈 아이콘]
-            E2[위치 설정]
-            E3[nav bar<br/>드롭다운]
-            E4[검색<br/>- 입력창<br/>- 완료버튼<br/>- 필터]
-            E5[마이페이지]
-            E6[즐겨찾기]
-            E7[장바구니]
-            E8[로그인/로그아웃]
-        end
-
-        subgraph "📱 사이드바"
-            F1[현재 주문 목록]
-            F2[수량 조절 +/-]
-            F3[삭제 버튼]
-            F4[옵션 변경]
-            F5[총 금액 표시]
-            F6[배달비 표시]
-            F7[결제 버튼]
-            F8[장바구니 비우기]
-        end
-
-        subgraph "🔻 푸터"
-            G1[로고]
-            G2[회사 정보]
-            G3[연락처]
-        end
-    end
-
-    subgraph "🏪 상세 페이지"
-        subgraph "📍 음식점 정보"
-            H1[기본 정보<br/>- 가게명/전화번호<br/>- 운영시간<br/>- 주소/최소주문금액]
-            H2[추가 정보<br/>- 사장님 공지<br/>- 원산지 정보<br/>- 사업자 정보]
-        end
-
-        subgraph "🍽️ 메뉴 및 옵션"
-            I1[메뉴 종류<br/>- 대표메뉴<br/>- 인기순/가격순]
-            I2[옵션 선택<br/>- 맵기 조절<br/>- 토핑 추가]
-        end
-
-        subgraph "⭐ 별점 및 리뷰"
-            J1[종합 평점<br/>- 총 리뷰수<br/>- 평점 평균]
-            J2[리뷰 요약<br/>- 필터 기능]
-            J3[개별 리뷰<br/>- 사용자 정보<br/>- 별점/내용/사진<br/>- 사장님 댓글]
-        end
-
-        subgraph "🗺️ 지도"
-            K1[음식점 위치]
-            K2[거리 표시]
-            K3[지도 앱 연동<br/>- 네이버/카카오]
-        end
-    end
-
-    subgraph "👤 마이페이지"
-        subgraph "📊 대시보드"
-            L1[주문 현황<br/>- 배송 조회<br/>- 교환/반품<br/>- 상세보기]
-        end
-
-        subgraph "📋 활동 내역"
-            M1[즐겨찾기]
-            M2[작성한 리뷰/댓글]
-            M3[최근 본 내역]
-            M4[찜 리스트]
-        end
-
-        subgraph "🔐 개인 정보"
-            N1[기본 정보<br/>- 이름/생년월일<br/>- 성별/가입일<br/>- 이메일/전화번호]
-            N2[결제 수단 관리<br/>- 리스트 보기<br/>- 수정/삭제]
-            N3[배송지 관리]
-        end
-
-        subgraph "💬 고객 지원"
-            O1[1:1 문의 내역]
-            O2[상품 Q&A]
-            O3[공지사항]
-        end
-
-        subgraph "🎁 혜택"
-            P1[쿠폰<br/>- 보유/완료/만료]
-            P2[등급 혜택 안내]
-        end
-
-        subgraph "⚙️ 설정"
-            Q1[로그아웃]
-            Q2[회원탈퇴]
-        end
-    end
-
-    subgraph "💳 주문/결제"
-        subgraph "📝 주문 정보"
-            R1[주소 설정]
-            R2[요청사항]
-            R3[메뉴 상세<br/>- 옵션변경<br/>- 갯수추가]
-        end
-
-        subgraph "💰 결제"
-            S1[결제수단]
-            S2[할인쿠폰]
-            S3[주문내역 확인<br/>- 음식점/메뉴<br/>- 배달료/할인료<br/>- 총 결제금액]
-            S4[결제하기 버튼]
-        end
-
-        subgraph "✅ 주문 완료"
-            T1[배달 예상시간]
-            T2[영수증 확인]
-        end
-    end
-
-    %% 연결관계
-    A --> H1
-    B --> H1
-    C --> D
-    D --> H1
-    
-    E7 --> F1
-    F7 --> R1
-    
-    H1 --> I1
-    I1 --> I2
-    I2 --> F1
-    
-    R3 --> S1
-    S1 --> S2
-    S2 --> S3
-    S3 --> S4
-    S4 --> T1
-    T1 --> T2
-
-    %% 스타일링
-    classDef mainPage fill:#e1f5fe
-    classDef common fill:#f3e5f5
-    classDef detail fill:#e8f5e8
-    classDef mypage fill:#fff3e0
-    classDef order fill:#fce4ec
-
-    class A,B,C,D mainPage
-    class E1,E2,E3,E4,E5,E6,E7,E8,F1,F2,F3,F4,F5,F6,F7,F8,G1,G2,G3 common
-    class H1,H2,I1,I2,J1,J2,J3,K1,K2,K3 detail
-    class L1,M1,M2,M3,M4,N1,N2,N3,O1,O2,O3,P1,P2,Q1,Q2 mypage
-    class R1,R2,R3,S1,S2,S3,S4,T1,T2 order
-```
-

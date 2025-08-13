@@ -1,0 +1,88 @@
+{% load socialaccount %}
+<nav class="navbar navbar-expand-lg custom_nav-container ">
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class=""> </span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav  mx-auto ">
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'restaurants:post-list' %}">Home </a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'restaurants:main-detail' %}">상세페이지</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'orders:cart_view' %}">장바구니</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'mypage:mypage_main' %}">마이페이지</a>
+      </li>
+    </ul>
+  </div>
+
+  <ul class="navbar-nav ms-auto">
+       {% if user.is_authenticated %}
+    <p>안녕하세요, {{ user.username }}님!</p>
+
+    <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-link" style="padding:0; border:none;">로그아웃</button>
+     </form>
+    {% else %}
+        <a href="{% url 'accounts:login' %}">로그인</a>
+        {% endif %}
+  </ul>
+</nav>
+<style>
+  .custom_nav-container {
+    background-color: #000000 !important;
+  }
+
+  /* 메뉴 위치 조정 */
+  .custom_nav-container .navbar-nav.mx-auto {
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    transform: translateX(150px); /* 메뉴 오른쪽으로 이동 */
+  }
+
+  /* 로그인 영역 왼쪽으로 당기기 */
+  .custom_nav-container .ms-auto {
+    margin-left: 20px !important; /* 기본 오른쪽 정렬 여백 줄이기 */
+    margin-right: 0 !important;
+    transform: translateX(-110px); /* 왼쪽으로 이동 */
+  }
+
+  /* 메뉴 색상 */
+  .custom_nav-container .nav-link {
+    color: #ffffff !important;
+  }
+  .custom_nav-container .nav-link:hover {
+    color: #ffcc00 !important;
+  }
+
+  /* 로그인 텍스트 색상 */
+  .custom_nav-container p {
+    color: #ffffff !important;
+    margin: 0;
+    padding-right: 20px;
+  }
+.custom_nav-container a,
+.custom_nav-container a:visited,
+.custom_nav-container a:hover,
+.custom_nav-container a:focus,
+.custom_nav-container a:active {
+  color: #ffffff !important;
+  text-decoration: none;
+}
+
+  /* 로그아웃 버튼 색상 */
+  .custom_nav-container button.btn-link {
+    color: #ffffff !important;
+  }
+  .custom_nav-container button.btn-link:hover {
+    color: #ff4d4d !important;
+  }
+</style>

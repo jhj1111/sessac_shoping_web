@@ -1,0 +1,187 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_filters %} {# custom_filters를 사용하고 계시므로 그대로 둡니다 #}
+
+{% block title %}
+    <title>sesac_web_main</title>
+{% endblock %}
+
+{% block banner %}
+<div class="hero_area">
+  <div class="bg-box">
+    <img src="{% static 'images/background.png' %}" alt="">
+  </div>
+  <header class="header_section">
+    <div class="container"></div>
+  </header>
+  <section class="slider_section ">
+    <div id="customCarousel1" class="carousel slide" data-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <div class="bg-box">
+             <img src="{% static 'images/about-img.png' %}" alt="배너1 배경">
+          </div>
+          <div class="container ">
+            <div class="row">
+              <div class="col-md-7 col-lg-6 ">
+                <div class="detail-box">
+                  <h1>1번 베너 영역</h1>
+                  <p>1번 베너 내용</p>
+                  <div class="btn-box"><a href="#" class="btn1">Order Now</a></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {# 다른 캐러셀 아이템들... #}
+      </div>
+      <div class="container">
+        <ol class="carousel-indicators">
+          <li data-target="#customCarousel1" data-slide-to="0" class="active"></li>
+          <li data-target="#customCarousel1" data-slide-to="1"></li>
+          <li data-target="#customCarousel1" data-slide-to="2"></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock banner %}
+
+{% block popular_restaurants %}
+<section class="offer_section layout_padding-bottom">
+  <div class="offer_container">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div id="map" style="width:100%; height:450px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock popular_restaurants %}
+
+{% block categories-nav %}
+<div class="container my-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <form method="get" class="input-group" action="{% url 'restaurants:post-list' %}">
+        <input type="text" name="q" class="form-control" placeholder="가게명을 입력하세요." value="{{ query }}">
+        <button type="submit" class="btn btn-dark">검색</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+  {% if query %}
+    {% if restaurants|length == 0 %}
+      <p class="text-center mt-3">검색 결과가 없습니다.</p>
+    {% endif %}
+  {% endif %}
+  </div>
+</div>
+<ul class="filters_menu">
+  <li class="active" data-filter="*">전체</li>
+  {% for code, name in categories %}
+    <li data-filter=".{{ code }}">{{ name }}</li>
+  {% endfor %}
+</ul>
+{% endblock categories-nav %}
+
+{% block food_section %}
+{% include 'main/widget.html' %}
+<div class="filters-content">
+  <div class="row grid" id="restaurant-grid">
+    {% for restaurant in restaurants %}
+      <div class="col-sm-6 col-lg-4 filter-item all {{ restaurant.category }}" data-category="all">
+        <div class="box">
+         <div>
+            <div class="img-box">
+               <a href="/restaurants/{{ restaurant.id }}/">
+                    {% if restaurant.image %}
+                        <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}">
+                    {% else %}
+                        <img src="{% static 'images/about-img.png' %}" alt="기본 이미지">
+                    {% endif %}
+               </a>
+            </div>
+            <div class="detail-box">
+              <h5>
+                {{ restaurant.name }}
+              </h5>
+              <p>
+                {{ restaurant.description }}
+              </p>
+            </div>
+        </div>
+        </div>
+      </div>
+    {% endfor %}
+    {% for code, name in categories %}
+      {% for restaurant in category_restaurants|dict_key:code %}
+        <div class="col-sm-6 col-lg-4 filter-item {{ code }}" data-category="{{ code }}" style="display:none;">
+          <div class="box">{# ... 음식점 내용 ... #}</div>
+        </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+</div>
+<div class="btn-box">
+  <a href="{% url 'restaurants:main-detail' %}">View More</a>
+</div>
+
+{{ user_address|json_script:"user-address" }}
+{{ restaurants_data|json_script:"restaurants-data" }}
+
+
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  {% include 'js/cart_widget.js' %}
+    document.addEventListener("DOMContentLoaded", function() {
+        const mapContainer = document.getElementById('map');
+        const mapOption = {
+            center: new kakao.maps.LatLng(37.566826, 126.978657),
+            level: 7
+        };
+        const map = new kakao.maps.Map(mapContainer, mapOption);
+        const geocoder = new kakao.maps.services.Geocoder();
+        const bounds = new kakao.maps.LatLngBounds();
+
+        const userAddress = JSON.parse(document.getElementById('user-address').textContent);
+        const restaurants = JSON.parse(document.getElementById('restaurants-data').textContent);
+
+        if (userAddress) {
+            geocoder.addressSearch(userAddress, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                    new kakao.maps.Marker({ map: map, position: coords, title: '내 등록 주소' });
+                    bounds.extend(coords);
+                    map.setBounds(bounds);
+                }
+            });
+        }
+
+        function geocodeRestaurants(index) {
+            if (index >= restaurants.length) {
+                map.setBounds(bounds);
+                return;
+            }
+            const restaurant = restaurants[index];
+            const address = restaurant.address;
+            const name = restaurant.name;
+
+            geocoder.addressSearch(address, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                    new kakao.maps.Marker({ map: map, position: coords, title: name });
+                    bounds.extend(coords);
+                }
+                setTimeout(() => geocodeRestaurants(index + 1), 100);
+            });
+        }
+        geocodeRestaurants(0);
+    });
+</script>
+{% endblock food_section %}
