@@ -1,4 +1,7 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
+
 from . import views
 
 app_name = 'orders'
@@ -27,3 +30,8 @@ urlpatterns = [
     # path('', OrderListView.as_view(), name='order_list'),
     # path('cancel/<int:order_id>/', views.CancelOrderView.as_view(), name='cancel_order'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

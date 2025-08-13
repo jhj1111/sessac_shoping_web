@@ -1,6 +1,4 @@
 import json
-from urllib import request
-
 from django.utils import timezone
 
 from django.shortcuts import render
@@ -10,15 +8,16 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.views import View
 
-from .models import Restaurant, Menu, MenuCategory
+from .models import Restaurant, Menu, MenuCategory, Review
 from apps.orders.models import Order, OrderItem
-from .forms import ReviewForm
+from .forms import ReviewForm, ReviewCommentForm
 # 'accounts' 앱의 Address 모델을 가져옵니다. 앱 구조에 맞게 수정이 필요할 수 있습니다.
 from apps.accounts.models import Address
 
@@ -27,18 +26,34 @@ def post_list(request):
     return render(request, template_name='main/base.html')
 
 
+# Create your views here.
 class PostListView(ListView):
     model = Restaurant
     template_name = 'main/post_list.html'
     context_object_name = 'restaurants'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q', '')
+        if query:
+            queryset = queryset.filter(name__icontains=query)
+        else:
+            queryset = queryset.all()[:6]  # 검색어 없으면 최신 6개
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        categories = Restaurant.CATEGORY_CHOICES
+        query = self.request.GET.get('q', '')
+        context['query'] = query
+
+        categories = Restaurant.CATEGORY_CHOICES  # 카테고리 가져오기
+
+        # user_address 예시 (로그인 유저만)
         user = self.request.user
         user_address = ""
         if user.is_authenticated:
-            user_address = user.address
+            user_address = getattr(user, 'address', '')
+
         restaurants_data = list(Restaurant.objects.all().values('name', 'address'))
         if self.request.user.is_authenticated:
             from apps.orders.models import Cart
@@ -60,19 +75,21 @@ class PostListView(ListView):
         context['user_address'] = user_address
         context['restaurants_data'] = restaurants_data
 
-        # 전체 6개 가져오기 (최신 순으로 변경 원하면 order_by('-id'))
-        restaurants_6 = Restaurant.objects.all()[:6]
-        exclude_ids = [r.id for r in restaurants_6]
+        exclude_ids = [r.id for r in self.get_queryset()]
 
-        # 카테고리별 6개씩, 전체 6개는 제외
         category_restaurants = {}
         for code, name in categories:
             category_restaurants[code] = Restaurant.objects.filter(category=code).exclude(id__in=exclude_ids)[:6]
 
         context['categories'] = categories
-        context['restaurants'] = restaurants_6
         context['category_restaurants'] = category_restaurants
+
+        # 검색 결과로 나온 음식점 리스트
+        context['restaurants'] = self.get_queryset()
+
         return context
+
+
 class MainDetailView(ListView):
     model = Restaurant
     template_name = 'main/post_main_detail.html'
@@ -98,8 +115,20 @@ class MainDetailView(ListView):
         else:
             context['cart'] = None
             context['cart_json'] = '{}'
+        context['categories'] = Restaurant.CATEGORY_CHOICES
+        context['query'] = self.request.GET.get('q', '')
+        context['result_count'] = context['restaurants'].count()  # 쿼리셋 개수
         return context
     # 특정 상세 페이지가 아니라서 이렇게만 하면 이동
+    def get_queryset(self):
+        queryset = super().get_queryset()  # 기본 쿼리셋: Restaurant.objects.all()
+        query = self.request.GET.get('q', '')  # URL 쿼리 파라미터 'q' 값을 가져옴
+        if query:
+            # 검색어가 있으면 이름에 검색어가 포함된 가게만 필터링
+            queryset = queryset.filter(name__icontains=query)
+        else:
+            queryset = queryset.all()
+        return queryset
 
 # 상세 페이지
 class RestaurantListView(ListView):
@@ -157,11 +186,12 @@ class RestaurantDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         restaurant = get_object_or_404(Restaurant, pk=self.kwargs['pk'])
         menu_categories = MenuCategory.objects.filter(restaurant=restaurant).prefetch_related('menus')
-        
+
         context['menu_categories'] = menu_categories
         context['restaurant'] = restaurant
         # 리뷰 작성 폼을 컨텍스트에 추가
         context['review_form'] = ReviewForm()
+        context['comment_form'] = ReviewCommentForm()
         # 해당 가게의 리뷰 목록을 컨텍스트에 추가
         context['reviews'] = self.object.reviews.select_related('user', 'comment').all()
 
@@ -201,6 +231,29 @@ class ReviewCreateView(LoginRequiredMixin, CreateView):
         restaurant_pk = self.kwargs['restaurant_pk']
         return redirect('restaurants:restaurant_detail', pk=restaurant_pk)
 
+
+@login_required
+def comment_create(request, review_pk):
+    """
+    사장님이 작성한 답글을 생성(저장)하는 뷰
+    """
+    review = get_object_or_404(Review, pk=review_pk)
+
+    # ⭐ 권한 확인: 현재 로그인한 사용자가 리뷰가 달린 가게의 사장님인지 확인
+    if request.user != review.restaurant.owner:
+        return HttpResponseForbidden("답글을 작성할 권한이 없습니다.")
+
+    # POST 요청일 때만 처리
+    if request.method == 'POST':
+        form = ReviewCommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.review = review  # 이 답글이 어떤 리뷰에 속하는지 연결
+            comment.save()
+            return redirect('restaurants:detail', pk=review.restaurant.pk)  # 성공 시 가게 상세 페이지로 이동
+
+    # GET 요청이거나 폼이 유효하지 않을 경우, 원래 상세 페이지로 리다이렉트
+    return redirect('restaurants:detail', pk=review.restaurant.pk)
 
 class OrderCreateView(LoginRequiredMixin, View):
     """

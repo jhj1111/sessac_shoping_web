@@ -1,5 +1,7 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
+from django.conf import settings
+from django.conf.urls.static import static
 
 from . import views
 
@@ -21,4 +23,11 @@ urlpatterns = [
         template_name='mypage/password_change_done.html'
     ), name='password_change_done'),
     path('delete/', views.AccountDeleteView.as_view(), name='account_delete'),
+    path('reviews/', views.MyPageReviewListView.as_view(), name='my_review_list'),
+
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

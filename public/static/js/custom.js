@@ -88,11 +88,12 @@ $(".client_owl-carousel").owlCarousel({
     }
 });
 $(window).on('load', function() {
-  var $grid = $(".grid").isotope({
+    // 1. Isotope를 먼저 초기화합니다.
+    var $grid = $(".grid").isotope({
     itemSelector: ".filter-item",
     layoutMode: 'fitRows'
-  });
 
+});
   function showLimitedItems(filter) {
     var $items;
     if (filter === '*' || filter === '.all') {

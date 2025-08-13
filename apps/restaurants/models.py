@@ -4,14 +4,6 @@ from django.utils import timezone  # timezone.now() 사용을 위해 추가
 
 from apps.accounts.models import Address
 
-class Category(models.Model):
-    name = models.CharField(max_length=50, unique=True)  # 예: '한식', '중식' ...
-    slug = models.SlugField(max_length=50, unique=True) # URL이나 클래스명으로 쓰기 좋게
-
-    def __str__(self):
-        return self.name
-
-
 
 class Restaurant(models.Model):
     CATEGORY_CHOICES = [
@@ -28,10 +20,10 @@ class Restaurant(models.Model):
     address = models.TextField()
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
-    operating_hours = models.JSONField()
-    minimum_order = models.PositiveIntegerField()
-    delivery_fee = models.PositiveIntegerField()
+    category = models.CharField(max_length=50)
+    operating_hours = models.JSONField(default=dict)
+    minimum_order = models.PositiveIntegerField(default=15000)
+    delivery_fee = models.PositiveIntegerField(default=3000)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
     review_count = models.PositiveIntegerField(default=0)
     is_open = models.BooleanField(default=True)
@@ -77,7 +69,8 @@ class Review(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.restaurant.name} 리뷰: {self.user.username} ({self.rating})'
+        return (f'{self.restaurant.name} ')
+                # f'리뷰: {self.user.username} ({self.rating})')
 
     @property
     def operating_status(self):
@@ -115,8 +108,8 @@ class Review(models.Model):
         self.average_rating = reviews.aggregate(avg=models.Avg('rating'))['avg'] or 0.0
         self.save(update_fields=['review_count', 'average_rating'])
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -162,7 +155,9 @@ class Menu(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'[{self.category.restaurant}] {self.name}'
+        if self.category and self.category.restaurant:
+            return f'[{self.category.restaurant.name}] {self.name}'  # ✅ self.category.restaurant 사용
+        return self.name
 
     def get_formatted_price(self):
         # Placeholder for price formatting
